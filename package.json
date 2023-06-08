@@ -1,0 +1,29 @@
+{
+	"name": "ethereum-tx-observer",
+	"version": "0.0.1",
+	"description": "observe tx and report their status",
+	"publishConfig": {
+		"access": "public"
+	},
+	"type": "module",
+	"main": "dist/index.cjs",
+	"module": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"devDependencies": {
+		"@types/lodash-es": "^4.17.7",
+		"eip-1193": "^0.4.4",
+		"rimraf": "^4.4.1",
+		"tsup": "^6.7.0",
+		"typescript": "^5.0.4"
+	},
+	"dependencies": {
+		"lodash-es": "^4.17.21",
+		"named-logs": "^0.2.2",
+		"radiate": "^0.0.1",
+		"sveltore": "^0.0.2"
+	},
+	"scripts": {
+		"build": "rimraf dist && tsup src/index.ts --dts --format esm,cjs",
+		"dev": "rimraf dist && tsup src/index.ts --dts --format esm,cjs --watch"
+	}
+}
