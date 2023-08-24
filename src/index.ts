@@ -215,6 +215,7 @@ export function initTransactionProcessor(config: {finality: number}) {
 					tx.inclusion = 'Broadcasted';
 					tx.final = undefined;
 					tx.status = undefined;
+					tx.request.nonce = txFromPeers.nonce;
 					changes = true;
 				}
 			}
