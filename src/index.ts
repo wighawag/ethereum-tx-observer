@@ -7,7 +7,7 @@ const logger = logs('tx-observer');
 
 export type EIP1193TransactionWithMetadata<Metadata extends any = any> = EIP1193TransactionData & {
     timestamp?: number;
-    metadata?: Metadata;
+    metadata: Metadata;
 };
 
 export type PendingTransactionInclusion = 'BeingFetched' | 'Broadcasted' | 'NotFound' | 'Cancelled' | 'Included';
