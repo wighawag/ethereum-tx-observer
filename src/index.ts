@@ -103,8 +103,8 @@ export function initTransactionProcessor(config: {finality: number}) {
 			return;
 		}
 
-		const latestBlockTime = parseInt(latestBlock.timestamp.slice(2), 16);
-		const latestBlockNumber = parseInt(latestBlock.number.slice(2), 16);
+		const latestBlockTime = Number(latestBlock.timestamp);
+		const latestBlockNumber = Number(latestBlock.number);
 
 		logger.info(`latestBlock: ${latestBlockNumber}`);
 
@@ -118,7 +118,7 @@ export function initTransactionProcessor(config: {finality: number}) {
 		if (!latestFinalizedBlock) {
 			return;
 		}
-		const latestFinalizedBlockTime = parseInt(latestFinalizedBlock.timestamp.slice(2), 16);
+		const latestFinalizedBlockTime = Number(latestFinalizedBlock.timestamp);
 
 		logger.info(`latestFinalizedBlock: ${latestFinalizedBlockNumber}`);
 
@@ -193,8 +193,8 @@ export function initTransactionProcessor(config: {finality: number}) {
 						(tx as any).inclusion = 'Included';
 						changes = true;
 					}
-					const blockNumber = parseInt(block.number.slice(2), 16);
-					const blockTimestamp = parseInt(block.timestamp.slice(2), 16);
+					const blockNumber = Number(block.number);
+					const blockTimestamp = Number(block.timestamp);
 					const is_final = latestBlockNumber - blockNumber >= config.finality;
 					if (receipt.status === '0x0' || receipt.status === '0x00') {
 						if (tx.status !== 'Failure' || tx.final !== blockTimestamp) {
@@ -235,7 +235,7 @@ export function initTransactionProcessor(config: {finality: number}) {
 				method: 'eth_getTransactionCount',
 				params: [account, latestFinalizedBlock.hash],
 			});
-			const finalityNonce = parseInt(tranactionCount.slice(2), 16);
+			const finalityNonce = Number(tranactionCount);
 
 			logger.info(`finalityNonce: ${finalityNonce}`);
 

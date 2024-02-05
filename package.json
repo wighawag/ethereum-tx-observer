@@ -1,6 +1,6 @@
 {
 	"name": "ethereum-tx-observer",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"description": "observe tx and report their status",
 	"publishConfig": {
 		"access": "public"
