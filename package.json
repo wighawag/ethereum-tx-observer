@@ -1,28 +1,67 @@
 {
 	"name": "ethereum-tx-observer",
-	"version": "0.0.5",
-	"description": "observe tx and report their status",
+	"version": "0.1.0",
+	"description": "A lightweight TypeScript library for tracking and monitoring Ethereum transactions throughout their lifecycle with reactive updates",
+	"keywords": [
+		"ethereum",
+		"transaction",
+		"observer",
+		"monitor",
+		"tracker",
+		"blockchain",
+		"web3",
+		"typescript",
+		"reactive",
+		"eip-1193"
+	],
+	"license": "MIT",
+	"author": "Ronan Sandford",
+	"homepage": "https://github.com/wighawag/ethereum-tx-observer#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/wighawag/ethereum-tx-observer.git"
+	},
+	"bugs": {
+		"url": "https://github.com/wighawag/ethereum-tx-observer/issues"
+	},
 	"publishConfig": {
 		"access": "public"
 	},
 	"type": "module",
-	"main": "dist/index.js",
-	"types": "dist/index.d.ts",
+	"main": "./dist/index.js",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"files": [
+		"dist",
+		"src"
+	],
+	"sideEffects": false,
+	"engines": {
+		"node": ">=16.0.0"
+	},
 	"devDependencies": {
-		"@types/lodash-es": "^4.17.7",
-		"eip-1193": "^0.4.4",
-		"rimraf": "^4.4.1",
-		"tsup": "^6.7.0",
-		"typescript": "^5.0.4"
+		"@types/lodash-es": "^4.17.12",
+		"as-soon": "^0.1.5",
+		"eip-1193": "^0.6.5",
+		"prettier": "^3.8.0",
+		"typescript": "^5.3.3"
 	},
 	"dependencies": {
-		"lodash-es": "^4.17.21",
-		"named-logs": "^0.2.2",
-		"radiate": "^0.0.1",
+		"lodash-es": "^4.17.23",
+		"named-logs": "^0.4.1",
+		"radiate": "^0.2.0",
 		"sveltore": "^0.0.2"
 	},
 	"scripts": {
-		"build": "rimraf dist && tsup src/index.ts --dts --format esm",
-		"dev": "rimraf dist && tsup src/index.ts --dts --format esm --watch"
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
+		"build": "tsc",
+		"dev": "as-soon -w src pnpm build"
 	}
 }

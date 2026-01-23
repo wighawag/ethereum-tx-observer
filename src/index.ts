@@ -2,7 +2,7 @@ import {writable} from 'sveltore';
 import type {EIP1193Provider, EIP1193Block, EIP1193TransactionData} from 'eip-1193';
 import {logs} from 'named-logs';
 import {throttle} from 'lodash-es';
-import {initEmitter} from 'radiate';
+import {Emitter} from 'radiate';
 const logger = logs('tx-observer');
 
 export type EIP1193TransactionWithMetadata<Metadata extends any = any> = EIP1193TransactionData & {
@@ -27,9 +27,10 @@ export type PendingTransactionState =
 			status: 'Failure' | 'Success';
 			final: number;
 	  };
+	  
 
 export function initTransactionProcessor(config: {finality: number}) {
-	const emitter = initEmitter<PendingTransaction>();
+	const emitter = new Emitter<{"transaction":PendingTransaction}>();
 
 	let provider: EIP1193Provider | undefined;
 	const $txs: PendingTransaction[] = [];
@@ -259,7 +260,7 @@ export function initTransactionProcessor(config: {finality: number}) {
 		if (changes) {
 			if (map[tx.hash]) {
 				// still tracked
-				emitter.emit(tx);
+				emitter.emit('transaction', tx);
 			}
 		}
 
@@ -286,9 +287,9 @@ export function initTransactionProcessor(config: {finality: number}) {
 		remove,
 		clear,
 
-		process: throttle(process, 1000), // TODO why onNewBlock is called so many time
+		process: throttle(process, 1000) as typeof process, // TODO why onNewBlock is called so many time
 
-		onTx: emitter.on,
-		offTx: emitter.off,
+		onTx: (listener: (transaction: PendingTransaction) => () =>void) => emitter.on('transaction', listener),
+		offTx: (listener: (transaction: PendingTransaction) => void) => emitter.off('transaction', listener),
 	};
 }
