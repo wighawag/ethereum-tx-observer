@@ -209,7 +209,12 @@ export function initTransactionProcessor(config: {
 	finality: number;
 	provider?: EIP1193Provider;
 }) {
-	const emitter = new Emitter<{operation: OnchainOperation}>();
+	const emitter = new Emitter<{
+		// Fires when any TX in the operation changes (for persistence)
+		operation: OnchainOperation;
+		// Fires only when operation status changes (for UI/state updates)
+		'operation:status': OnchainOperation;
+	}>();
 
 	let provider: EIP1193Provider | undefined = config.provider;
 	const $ops: OnchainOperation[] = [];
@@ -340,10 +345,14 @@ export function initTransactionProcessor(config: {
 			return false;
 		}
 
-		let anyTxChanged = false;
+		// CONSISTENCY GUARANTEE: Snapshot transactions to avoid mid-iteration modifications
+		// This ensures stable iteration while allowing new txs to be added via add()
+		const txsSnapshot = [...op.transactions];
+		const initialTxCount = txsSnapshot.length;
 
-		// Process each transaction in the operation
-		for (const tx of op.transactions) {
+		// Process each transaction from the snapshot, track if any changed
+		let anyTxChanged = false;
+		for (const tx of txsSnapshot) {
 			const changed = await processTx(tx, {
 				latestBlockNumber,
 				latestBlockTime,
@@ -353,23 +362,40 @@ export function initTransactionProcessor(config: {
 			if (changed) anyTxChanged = true;
 		}
 
-		if (anyTxChanged) {
-			// Recompute operation status from merged tx statuses
-			const newStatus = computeOperationStatus(op);
+		// Check if new txs were added during processing
+		const txsWereAdded = op.transactions.length > initialTxCount;
 
-			// Check if status actually changed
-			if (hasOperationStatusChanged(op, newStatus)) {
-				// Update operation status fields
-				applyOperationStatus(op, newStatus);
+		// Only recompute status if we processed something or new txs were added
+		// This prevents spurious emissions for empty operations
+		if (initialTxCount === 0 && !txsWereAdded) {
+			return false;
+		}
 
-				// Emit operation event if still tracked
-				if (opsById[op.id]) {
-					emitter.emit('operation', op);
-				}
+		// IMPORTANT: Compute status from ALL current txs, not just snapshot
+		// This ensures txs added during processing are included in status computation
+		// and emitted operations always include all known transactions
+		const newStatus = computeOperationStatus(op);
+		const statusChanged = hasOperationStatusChanged(op, newStatus);
+
+		// Update operation status fields if changed
+		if (statusChanged) {
+			applyOperationStatus(op, newStatus);
+		}
+
+		// Emit events if still tracked
+		if (opsById[op.id]) {
+			// Emit 'operation' for any TX change (for persistence)
+			if (anyTxChanged || txsWereAdded) {
+				emitter.emit('operation', op);
+			}
+
+			// Emit 'operation:status' only when operation status changes (for UI/state)
+			if (statusChanged) {
+				emitter.emit('operation:status', op);
 			}
 		}
 
-		return anyTxChanged;
+		return anyTxChanged || statusChanged;
 	}
 
 	async function processTx(
@@ -501,9 +527,17 @@ export function initTransactionProcessor(config: {
 
 		process: process, // TODO: throttle(process, 1000) as typeof process, // TODO throotle delay
 
+		// 'operation' fires when any TX in the operation changes (for persistence)
 		onOperation: (listener: (operation: OnchainOperation) => () => void) =>
 			emitter.on('operation', listener),
 		offOperation: (listener: (operation: OnchainOperation) => void) =>
 			emitter.off('operation', listener),
+
+		// 'operation:status' fires only when operation status changes (for UI/state updates)
+		onOperationStatus: (
+			listener: (operation: OnchainOperation) => () => void,
+		) => emitter.on('operation:status', listener),
+		offOperationStatus: (listener: (operation: OnchainOperation) => void) =>
+			emitter.off('operation:status', listener),
 	};
 }

@@ -44,10 +44,12 @@
 	"sideEffects": false,
 	"devDependencies": {
 		"@types/lodash-es": "^4.17.12",
+		"@vitest/coverage-v8": "^4.0.18",
 		"as-soon": "^0.1.5",
 		"eip-1193": "^0.6.5",
 		"prettier": "^3.8.0",
-		"typescript": "^5.3.3"
+		"typescript": "^5.3.3",
+		"vitest": "^4.0.18"
 	},
 	"dependencies": {
 		"lodash-es": "^4.17.23",
@@ -58,6 +60,9 @@
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
 		"build": "tsc",
-		"dev": "as-soon -w src pnpm build"
+		"dev": "as-soon -w src pnpm build",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage"
 	}
 }
