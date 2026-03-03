@@ -237,7 +237,8 @@ export function initTransactionProcessor(config: {
 		}
 	}
 
-	function add(id: string, operation: OnchainOperation) {
+	function add(id: string, operationToAdd: OnchainOperation) {
+		const operation = structuredClone(operationToAdd);
 		logger.debug(`adding operation ${id}...`);
 		const existing = opsById[id];
 		if (!existing) {
@@ -391,12 +392,19 @@ export function initTransactionProcessor(config: {
 		if (opsById[id]) {
 			// Emit 'operation' for any TX change (for persistence)
 			if (anyTxChanged || txsWereAdded) {
-				emitter.emit('operation', {id, operation: op});
+				if (emitter.hasListeners('operation')) {
+					emitter.emit('operation', {id, operation: structuredClone(op)});
+				}
 			}
 
 			// Emit 'operation:status' only when operation status changes (for UI/state)
 			if (statusChanged) {
-				emitter.emit('operation:status', {id, operation: op});
+				if (emitter.hasListeners('operation:status')) {
+					emitter.emit('operation:status', {
+						id,
+						operation: structuredClone(op),
+					});
+				}
 			}
 		}
 
