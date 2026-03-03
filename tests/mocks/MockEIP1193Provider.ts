@@ -196,7 +196,7 @@ export function createMockProvider(config: MockProviderConfig = {}): {
 	}
 
 	// Provider implementation
-	const provider: EIP1193ProviderWithoutEvents = {
+	const provider = {
 		async request(args: {method: string; params?: unknown[]}): Promise<any> {
 			const {method, params = []} = args;
 
@@ -457,5 +457,5 @@ export function createMockProvider(config: MockProviderConfig = {}): {
 		},
 	};
 
-	return {provider: provider as EIP1193ProviderWithoutEvents, controller};
+	return {provider: provider as unknown as EIP1193ProviderWithoutEvents, controller};
 }
