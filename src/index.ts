@@ -232,11 +232,11 @@ export function initTransactionProcessor(config: {
 	function add(operations: {[id: string]: OnchainOperation}) {
 		logger.debug(`adding ${Object.keys(operations).length} operations...`);
 		for (const entry of Object.entries(operations)) {
-			_addSingle(entry[0], entry[1]);
+			addSingle(entry[0], entry[1]);
 		}
 	}
 
-	function _addSingle(id: string, operation: OnchainOperation) {
+	function addSingle(id: string, operation: OnchainOperation) {
 		logger.debug(`adding operation ${id}...`);
 		const existing = opsById[id];
 		if (!existing) {
@@ -582,6 +582,7 @@ export function initTransactionProcessor(config: {
 		add,
 		remove,
 		clear,
+		addSingle,
 
 		process: process, // TODO: throttle(process, 1000) as typeof process, // TODO throotle delay
 
