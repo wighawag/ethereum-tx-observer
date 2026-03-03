@@ -51,7 +51,7 @@ describe('Consistency Guarantee with Local State Handler', () => {
 		});
 
 		emissions = [];
-		cleanup = processor.onOperation((event) => {
+		cleanup = processor.onOperationUpdated((event) => {
 			emissions.push(structuredClone(event.operation));
 			return () => {};
 		});

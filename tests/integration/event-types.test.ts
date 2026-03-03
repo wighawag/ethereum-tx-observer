@@ -45,12 +45,12 @@ describe('Event Types', () => {
 		statusEmissions = [];
 
 		// Listen to both event types
-		cleanupOperation = processor.onOperation((event) => {
+		cleanupOperation = processor.onOperationUpdated((event) => {
 			operationEmissions.push(structuredClone(event.operation));
 			return () => {};
 		});
 
-		cleanupStatus = processor.onOperationStatus((event) => {
+		cleanupStatus = processor.onOperationStatusUpdated((event) => {
 			statusEmissions.push(structuredClone(event.operation));
 			return () => {};
 		});

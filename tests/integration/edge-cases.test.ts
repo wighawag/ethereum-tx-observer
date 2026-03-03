@@ -112,7 +112,7 @@ describe('Edge Cases for Full Coverage', () => {
 			});
 
 			const emissions: OnchainOperation[] = [];
-			processor.onOperation((event) => {
+			processor.onOperationUpdated((event) => {
 				emissions.push({
 					...event.operation,
 					transactions: [...event.operation.transactions],
@@ -187,14 +187,14 @@ describe('Edge Cases for Full Coverage', () => {
 			};
 
 			// Add listener
-			processor.onOperation(listener);
+			processor.onOperationUpdated(listener);
 
 			// Remove listener using offOperation
-			processor.offOperation(listener);
+			processor.offOperationUpdated(listener);
 
 			// Listener should be removed (no way to verify directly without emitting)
 			// This test just ensures the method exists and doesn't throw
-			expect(() => processor.offOperation(listener)).not.toThrow();
+			expect(() => processor.offOperationUpdated(listener)).not.toThrow();
 		});
 
 		it('should properly remove operationStatus listener with offOperationStatus', () => {
@@ -207,13 +207,13 @@ describe('Edge Cases for Full Coverage', () => {
 			};
 
 			// Add listener
-			processor.onOperationStatus(listener);
+			processor.onOperationStatusUpdated(listener);
 
 			// Remove listener using offOperationStatus
-			processor.offOperationStatus(listener);
+			processor.offOperationStatusUpdated(listener);
 
 			// Listener should be removed
-			expect(() => processor.offOperationStatus(listener)).not.toThrow();
+			expect(() => processor.offOperationStatusUpdated(listener)).not.toThrow();
 		});
 
 		it('should not emit to removed operation listener', async () => {
@@ -226,8 +226,8 @@ describe('Edge Cases for Full Coverage', () => {
 			};
 
 			// Add and then remove listener
-			setup.processor.onOperation(listener);
-			setup.processor.offOperation(listener);
+			setup.processor.onOperationUpdated(listener);
+			setup.processor.offOperationUpdated(listener);
 
 			// Trigger emission
 			addToMempool();
@@ -248,8 +248,8 @@ describe('Edge Cases for Full Coverage', () => {
 			};
 
 			// Add and then remove listener
-			setup.processor.onOperationStatus(listener);
-			setup.processor.offOperationStatus(listener);
+			setup.processor.onOperationStatusUpdated(listener);
+			setup.processor.offOperationStatusUpdated(listener);
 
 			// Trigger emission
 			addToMempool();
@@ -296,7 +296,7 @@ describe('Edge Cases for Full Coverage', () => {
 				return () => {};
 			};
 
-			setup.processor.onOperationStatus(statusListener);
+			setup.processor.onOperationStatusUpdated(statusListener);
 
 			// Process - should emit status event for initial state change
 			addToMempool();
@@ -359,7 +359,7 @@ describe('Edge Cases for Full Coverage', () => {
 			});
 
 			const emissions: OnchainOperation[] = [];
-			processor.onOperation((event) => {
+			processor.onOperationUpdated((event) => {
 				emissions.push({
 					...event.operation,
 					transactions: [...event.operation.transactions],

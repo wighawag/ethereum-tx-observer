@@ -48,7 +48,7 @@ export function createTestSetup(
 
 	const emissions: OnchainOperation[] = [];
 	const emissionEvents: OnchainOperationEvent[] = [];
-	const cleanupListener = processor.onOperation((event) => {
+	const cleanupListener = processor.onOperationUpdated((event) => {
 		emissions.push(structuredClone(event.operation));
 		emissionEvents.push(structuredClone(event));
 		return () => {};

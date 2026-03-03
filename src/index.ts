@@ -4,7 +4,7 @@ import type {
 	EIP1193ProviderWithoutEvents,
 } from 'eip-1193';
 import {logs} from 'named-logs';
-// TODO // import {throttle} from 'lodash-es';
+import {throttle} from 'lodash-es';
 import {Emitter} from 'radiate';
 const logger = logs('tx-observer');
 
@@ -215,6 +215,7 @@ function hasOperationStatusChanged(
 
 export function initTransactionProcessor(config: {
 	finality: number;
+	throttle?: number;
 	provider?: EIP1193ProviderWithoutEvents;
 }) {
 	const emitter = new Emitter<{
@@ -585,19 +586,23 @@ export function initTransactionProcessor(config: {
 		add,
 		addMultiple,
 
-		process: process, // TODO: throttle(process, 1000) as typeof process, // TODO throotle delay
+		process: (config.throttle
+			? throttle(process, config.throttle)
+			: process) as typeof process,
 
-		// 'operation' fires when any TX in the operation changes (for persistence)
-		onOperation: (listener: (event: OnchainOperationEvent) => () => void) =>
-			emitter.on('operation', listener),
-		offOperation: (listener: (event: OnchainOperationEvent) => void) =>
+		// 'onOperationUpdatedUpdated' fires when any TX in the operation changes (for persistence)
+		onOperationUpdated: (
+			listener: (event: OnchainOperationEvent) => () => void,
+		) => emitter.on('operation', listener),
+		offOperationUpdated: (listener: (event: OnchainOperationEvent) => void) =>
 			emitter.off('operation', listener),
 
-		// 'operation:status' fires only when operation status changes (for UI/state updates)
-		onOperationStatus: (
+		// 'onOperationUpdatedStatusUpdated' fires only when operation status changes (for UI/state updates)
+		onOperationStatusUpdated: (
 			listener: (event: OnchainOperationEvent) => () => void,
 		) => emitter.on('operation:status', listener),
-		offOperationStatus: (listener: (event: OnchainOperationEvent) => void) =>
-			emitter.off('operation:status', listener),
+		offOperationStatusUpdated: (
+			listener: (event: OnchainOperationEvent) => void,
+		) => emitter.off('operation:status', listener),
 	};
 }

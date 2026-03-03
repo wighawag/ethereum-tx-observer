@@ -323,7 +323,7 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 			const emissions: OnchainOperation[] = [];
 
 			// State handler listens for events
-			const cleanup = setup.processor.onOperation((event) => {
+			const cleanup = setup.processor.onOperationUpdated((event) => {
 				emissions.push(structuredClone(event.operation));
 				return () => {};
 			});
