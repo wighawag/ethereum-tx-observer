@@ -211,7 +211,7 @@ export function assertOperationStatus(
 	if (expected.final !== undefined) {
 		expect(op.state?.final, message).toBe(expected.final);
 	} else if (
-		expected.inclusion === 'Broadcasted' ||
+		expected.inclusion === 'InMemPool' ||
 		expected.inclusion === 'NotFound'
 	) {
 		expect(op.state?.final, message).toBeUndefined();

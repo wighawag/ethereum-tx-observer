@@ -146,7 +146,7 @@ describe('Edge Cases for Full Coverage', () => {
 
 			// First process should find it in mempool
 			await processor.process();
-			expect(operation.state?.inclusion).toBe('Broadcasted');
+			expect(operation.state?.inclusion).toBe('InMemPool');
 
 			// Now create a scenario where first fetch returns null but second returns the tx
 			let fetchCallCount = 0;
@@ -172,7 +172,7 @@ describe('Edge Cases for Full Coverage', () => {
 			await processor.process();
 
 			// Transaction should still be Broadcasted since retry found it
-			expect(operation.state?.inclusion).toBe('Broadcasted');
+			expect(operation.state?.inclusion).toBe('InMemPool');
 		});
 	});
 

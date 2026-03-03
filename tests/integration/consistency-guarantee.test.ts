@@ -91,7 +91,7 @@ describe('Consistency Guarantee with Local State Handler', () => {
 
 			// First process to establish TX1 as Broadcasted
 			await processor.process();
-			expect(op.state?.inclusion).toBe('Broadcasted');
+			expect(op.state?.inclusion).toBe('InMemPool');
 
 			// Create TX2
 			const tx2 = createBroadcastedTx({
@@ -182,7 +182,7 @@ describe('Consistency Guarantee with Local State Handler', () => {
 			controller.addToMempool(mockTx1);
 			processor.addMultiple({'snapshot-test': op});
 			await processor.process();
-			expect(op.state?.inclusion).toBe('Broadcasted');
+			expect(op.state?.inclusion).toBe('InMemPool');
 
 			const emissionCountBefore = emissions.length;
 
@@ -340,9 +340,9 @@ describe('Consistency Guarantee with Local State Handler', () => {
 			await processor.process();
 
 			// Both should be Broadcasted
-			expect(op.transactions[0].state?.inclusion).toBe('Broadcasted');
-			expect(op.transactions[1].state?.inclusion).toBe('Broadcasted');
-			expect(op.state?.inclusion).toBe('Broadcasted');
+			expect(op.transactions[0].state?.inclusion).toBe('InMemPool');
+			expect(op.transactions[1].state?.inclusion).toBe('InMemPool');
+			expect(op.state?.inclusion).toBe('InMemPool');
 		});
 
 		it('should correctly compute merged status with multiple TXs', async () => {

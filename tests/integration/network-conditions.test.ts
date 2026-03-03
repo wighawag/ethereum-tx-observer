@@ -51,7 +51,7 @@ describe('Network Conditions', () => {
 
 			// First successful process
 			await processAndWait(setup);
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// Make tx lookup fail
 			setup.controller.setFailMethods(['eth_getTransactionByHash']);
@@ -60,7 +60,7 @@ describe('Network Conditions', () => {
 			await expect(setup.processor.process()).rejects.toThrow();
 
 			// Operation should retain previous state
-			expect(operation.state?.inclusion).toBe('Broadcasted');
+			expect(operation.state?.inclusion).toBe('InMemPool');
 		});
 
 		it('network-eth-getTransactionReceipt-fails: Receipt fetch fails', async () => {
@@ -80,7 +80,7 @@ describe('Network Conditions', () => {
 			await expect(setup.processor.process()).rejects.toThrow();
 
 			// Operation should stay at Broadcasted (couldn't confirm inclusion)
-			expect(operation.state?.inclusion).toBe('Broadcasted');
+			expect(operation.state?.inclusion).toBe('InMemPool');
 		});
 
 		it('network-intermittent: Random failures with recovery', async () => {
@@ -127,7 +127,7 @@ describe('Network Conditions', () => {
 			addToMempool();
 
 			await processAndWait(setup);
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// Disconnect
 			setup.controller.simulateDisconnect();
@@ -234,7 +234,7 @@ describe('Network Conditions', () => {
 			// Multiple RPC calls means multiple latency delays
 			expect(endTime - startTime).toBeGreaterThanOrEqual(50);
 
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 		});
 
 		it('should work with dynamic latency changes', async () => {
@@ -245,7 +245,7 @@ describe('Network Conditions', () => {
 
 			// Start with no latency
 			await processAndWait(setup);
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// Add latency mid-test
 			setup.controller.setLatency(10);
@@ -275,11 +275,11 @@ describe('Network Conditions', () => {
 			await Promise.all(promises);
 
 			// Should reach correct state without issues
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// Should not have duplicate emissions for same state
 			const broadcastedEmissions = setup.emissions.filter(
-				(e) => e.state?.inclusion === 'Broadcasted',
+				(e) => e.state?.inclusion === 'InMemPool',
 			);
 
 			// All emissions after the first should be deduped
@@ -295,7 +295,7 @@ describe('Network Conditions', () => {
 			addToMempool();
 
 			await processAndWait(setup);
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// Remove from mempool between process calls
 			setup.controller.removeFromMempool(txHash);
@@ -346,8 +346,8 @@ describe('Network Conditions', () => {
 			await processAndWait(setup);
 
 			// Both should be broadcasted
-			assertOperationInclusion(op1, 'Broadcasted');
-			assertOperationInclusion(op2, 'Broadcasted');
+			assertOperationInclusion(op1, 'InMemPool');
+			assertOperationInclusion(op2, 'InMemPool');
 
 			const emissionsBeforeRemove = setup.emissions.length;
 
@@ -358,7 +358,7 @@ describe('Network Conditions', () => {
 			await processAndWait(setup);
 
 			// op2 should still work (no state change so no emission)
-			assertOperationInclusion(op2, 'Broadcasted');
+			assertOperationInclusion(op2, 'InMemPool');
 		});
 	});
 });

@@ -62,13 +62,13 @@ export function createBroadcastedOperation(
 ): OnchainOperation {
 	const tx = createBroadcastedTx({
 		...txOverrides,
-		state: {inclusion: 'Broadcasted', final: undefined, status: undefined},
+		state: {inclusion: 'InMemPool', final: undefined, status: undefined},
 	});
 	return createOperation({
 		...opOverrides,
 		transactions: [tx],
 		state: {
-			inclusion: 'Broadcasted',
+			inclusion: 'InMemPool',
 			final: undefined,
 			status: undefined,
 			txIndex: undefined,

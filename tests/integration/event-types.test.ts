@@ -81,8 +81,8 @@ describe('Event Types', () => {
 			expect(operationEmissions.length).toBe(1);
 			expect(statusEmissions.length).toBe(1);
 
-			expect(operationEmissions[0].state?.inclusion).toBe('Broadcasted');
-			expect(statusEmissions[0].state?.inclusion).toBe('Broadcasted');
+			expect(operationEmissions[0].state?.inclusion).toBe('InMemPool');
+			expect(statusEmissions[0].state?.inclusion).toBe('InMemPool');
 		});
 
 		it('should emit operation but NOT operation:status when only TX changes without status change', async () => {
@@ -125,7 +125,7 @@ describe('Event Types', () => {
 
 			// First process: both become Broadcasted
 			await processor.process();
-			expect(op.state?.inclusion).toBe('Broadcasted');
+			expect(op.state?.inclusion).toBe('InMemPool');
 
 			const opCountAfterBroadcast = operationEmissions.length;
 			const statusCountAfterBroadcast = statusEmissions.length;
@@ -177,7 +177,7 @@ describe('Event Types', () => {
 			processor.addMultiple({'no-change': op});
 
 			await processor.process();
-			expect(op.state?.inclusion).toBe('Broadcasted');
+			expect(op.state?.inclusion).toBe('InMemPool');
 
 			const opCountBefore = operationEmissions.length;
 			const statusCountBefore = statusEmissions.length;

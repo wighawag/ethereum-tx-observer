@@ -54,7 +54,7 @@ describe('Operation Status Merging', () => {
 
 			await processAndWait(setup);
 
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 		});
 
 		it('merge-one-included-success: One tx succeeded, others pending → Included/Success', async () => {
@@ -226,7 +226,7 @@ describe('Operation Status Merging', () => {
 			await processAndWait(setup);
 
 			// Should be Broadcasted (TX2 is broadcasted, TX1 is NotFound)
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// Include TX1 directly (skipping mempool)
 			addTx1();
@@ -426,7 +426,7 @@ describe('Operation Status Merging', () => {
 			addToMempool();
 			await processAndWait(setup);
 
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 			expect(operation.transactions).toHaveLength(1);
 		});
 

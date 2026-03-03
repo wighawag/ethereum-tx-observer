@@ -42,7 +42,7 @@ describe('Dropped Transaction Scenarios', () => {
 			// Add to mempool and process
 			addToMempool();
 			await processAndWait(setup);
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// Tx disappears from mempool
 			setup.controller.removeFromMempool(txHash);
@@ -139,10 +139,10 @@ describe('Dropped Transaction Scenarios', () => {
 
 			// TX1 is dropped but TX2 is still active
 			assertTxInclusion(operation.transactions[0], 'Dropped');
-			assertTxInclusion(operation.transactions[1], 'Broadcasted');
+			assertTxInclusion(operation.transactions[1], 'InMemPool');
 
 			// Operation should NOT be Dropped - still has active tx
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 		});
 
 		it('dropped-external-tx: Nonce consumed by tx not in our operation', async () => {
@@ -154,7 +154,7 @@ describe('Dropped Transaction Scenarios', () => {
 
 			addToMempool();
 			await processAndWait(setup);
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// Simulate external tx consuming nonce:
 			// 1. Our tx disappears from mempool
@@ -205,7 +205,7 @@ describe('Dropped Transaction Scenarios', () => {
 
 			addToMempool();
 			await processAndWait(setup);
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// Tx disappears but nonce still valid (not consumed)
 			setup.controller.removeFromMempool(operation.transactions[0].hash);
@@ -250,7 +250,7 @@ describe('Dropped Transaction Scenarios', () => {
 
 			addToMempool();
 			await processAndWait(setup);
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// Tx temporarily disappears
 			setup.controller.removeFromMempool(operation.transactions[0].hash);
@@ -262,7 +262,7 @@ describe('Dropped Transaction Scenarios', () => {
 			await processAndWait(setup);
 
 			// Should be back to Broadcasted
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 		});
 
 		it('notfound-to-included: Tx not in mempool but appears in block', async () => {
@@ -320,8 +320,8 @@ describe('Dropped Transaction Scenarios', () => {
 			await processAndWait(setup);
 
 			// Both should be broadcasted
-			assertOperationInclusion(op1, 'Broadcasted');
-			assertOperationInclusion(op2, 'Broadcasted');
+			assertOperationInclusion(op1, 'InMemPool');
+			assertOperationInclusion(op2, 'InMemPool');
 
 			// Drop op1's tx
 			setup.controller.removeFromMempool(op1.transactions[0].hash);
@@ -330,7 +330,7 @@ describe('Dropped Transaction Scenarios', () => {
 
 			// Op1 should be dropped, op2 still broadcasted
 			assertOperationDropped(op1);
-			assertOperationInclusion(op2, 'Broadcasted');
+			assertOperationInclusion(op2, 'InMemPool');
 		});
 	});
 
@@ -343,7 +343,7 @@ describe('Dropped Transaction Scenarios', () => {
 
 			addToMempool();
 			await processAndWait(setup);
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// Remove and consume nonce 0
 			setup.controller.removeFromMempool(operation.transactions[0].hash);
@@ -361,7 +361,7 @@ describe('Dropped Transaction Scenarios', () => {
 
 			addToMempool();
 			await processAndWait(setup);
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// Remove and consume high nonce
 			setup.controller.removeFromMempool(operation.transactions[0].hash);

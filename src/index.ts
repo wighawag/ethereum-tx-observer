@@ -9,14 +9,14 @@ import {Emitter} from 'radiate';
 const logger = logs('tx-observer');
 
 export type BroadcastedTransactionInclusion =
-	| 'Broadcasted'
+	| 'InMemPool'
 	| 'NotFound'
 	| 'Dropped'
 	| 'Included';
 
 export type BroadcastedTransactionState =
 	| {
-			inclusion: 'Broadcasted' | 'NotFound';
+			inclusion: 'InMemPool' | 'NotFound';
 			final: undefined;
 			status: undefined;
 	  }
@@ -46,7 +46,7 @@ export type BroadcastedTransaction = {
  */
 export type OnchainOperationStatus =
 	| {
-			inclusion: 'Broadcasted' | 'NotFound';
+			inclusion: 'InMemPool' | 'NotFound';
 			final: undefined;
 			status: undefined;
 			txIndex: undefined;
@@ -141,9 +141,9 @@ function computeOperationStatus(op: OnchainOperation): OnchainOperationStatus {
 	}
 
 	// Check for any Broadcasted
-	if (txs.some((tx) => tx.state?.inclusion === 'Broadcasted')) {
+	if (txs.some((tx) => tx.state?.inclusion === 'InMemPool')) {
 		return {
-			inclusion: 'Broadcasted',
+			inclusion: 'InMemPool',
 			final: undefined,
 			status: undefined,
 			txIndex: undefined,
@@ -495,8 +495,8 @@ export function initTransactionProcessor(config: {
 				}
 			} else {
 				if (tx.state) {
-					if (tx.state && tx.state.inclusion !== 'Broadcasted') {
-						tx.state.inclusion = 'Broadcasted';
+					if (tx.state && tx.state.inclusion !== 'InMemPool') {
+						tx.state.inclusion = 'InMemPool';
 						tx.state.final = undefined;
 						tx.state.status = undefined;
 						tx.nonce = Number(txFromPeers.nonce);
@@ -504,7 +504,7 @@ export function initTransactionProcessor(config: {
 					}
 				} else {
 					tx.state = {
-						inclusion: 'Broadcasted',
+						inclusion: 'InMemPool',
 						final: undefined,
 						status: undefined,
 					};

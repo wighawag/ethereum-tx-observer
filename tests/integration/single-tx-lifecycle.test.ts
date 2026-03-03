@@ -43,7 +43,7 @@ describe('Single Transaction Lifecycle', () => {
 			addToMempool();
 			await processAndWait(setup);
 
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 		});
 
 		it('should transition from Broadcasted to Included when tx is mined', async () => {
@@ -52,7 +52,7 @@ describe('Single Transaction Lifecycle', () => {
 
 			addToMempool();
 			await processAndWait(setup);
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// Include the tx
 			setup.controller.includeTx(txHash, 'success');
@@ -102,7 +102,7 @@ describe('Single Transaction Lifecycle', () => {
 
 			// Verify each phase
 			expect(phases.added?.state?.inclusion).toBe('NotFound'); // Not in mempool yet
-			expect(phases.broadcasted?.state?.inclusion).toBe('Broadcasted');
+			expect(phases.broadcasted?.state?.inclusion).toBe('InMemPool');
 			expect(phases.included?.state?.inclusion).toBe('Included');
 			expect(phases.finalized?.state?.final).toBeDefined();
 		});
@@ -123,7 +123,7 @@ describe('Single Transaction Lifecycle', () => {
 			addToMempool();
 			await processAndWait(setup);
 			const broadcastedEmission = setup.emissions[setup.emissions.length - 1];
-			expect(broadcastedEmission.state?.inclusion).toBe('Broadcasted');
+			expect(broadcastedEmission.state?.inclusion).toBe('InMemPool');
 
 			// Included
 			setup.controller.includeTx(txHash, 'success');
@@ -172,7 +172,7 @@ describe('Single Transaction Lifecycle', () => {
 			expect(emissionEvent.id).toBe(operationId);
 			expect(emissionEvent.operation.transactions).toHaveLength(1);
 			expect(emissionEvent.operation.transactions[0].hash).toBe(txHash);
-			expect(emissionEvent.operation.state?.inclusion).toBe('Broadcasted');
+			expect(emissionEvent.operation.state?.inclusion).toBe('InMemPool');
 		});
 	});
 
@@ -185,7 +185,7 @@ describe('Single Transaction Lifecycle', () => {
 			await processAndWait(setup);
 
 			// Should go directly to Broadcasted, not through NotFound
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 		});
 
 		it('should handle delayed mempool visibility', async () => {
@@ -199,7 +199,7 @@ describe('Single Transaction Lifecycle', () => {
 			addToMempool();
 			await processAndWait(setup);
 
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 		});
 	});
 

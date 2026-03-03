@@ -192,7 +192,7 @@ type BroadcastedTransaction = {
 };
 
 type BroadcastedTransactionState =
-  | { inclusion: 'Broadcasted' | 'NotFound'; final: undefined; status: undefined }
+  | { inclusion: 'InMemPool' | 'NotFound'; final: undefined; status: undefined }
   | { inclusion: 'Dropped'; final?: number; status: undefined }
   | { inclusion: 'Included'; status: 'Failure' | 'Success'; final?: number };
 ```
@@ -203,7 +203,7 @@ The merged status of all transactions in an operation.
 
 ```typescript
 type OnchainOperationStatus =
-  | { inclusion: 'Broadcasted' | 'NotFound'; final: undefined; status: undefined; txIndex: undefined }
+  | { inclusion: 'InMemPool' | 'NotFound'; final: undefined; status: undefined; txIndex: undefined }
   | { inclusion: 'Dropped'; final?: number; status: undefined; txIndex: undefined }
   | { inclusion: 'Included'; status: 'Failure' | 'Success'; final?: number; txIndex: number };
 ```
@@ -275,7 +275,7 @@ const tx1: BroadcastedTransaction = {
   nonce: 5,
   broadcastTimestamp: Date.now(),
   state: {
-    inclusion: 'Broadcasted',
+    inclusion: 'InMemPool',
     status: undefined,
     final: undefined,
   },
@@ -284,7 +284,7 @@ const tx1: BroadcastedTransaction = {
 processor.add('transfer-1', {
   transactions: [tx1],
   state: {
-    inclusion: 'Broadcasted',
+    inclusion: 'InMemPool',
     status: undefined,
     final: undefined,
     txIndex: undefined,

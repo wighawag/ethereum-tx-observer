@@ -47,7 +47,7 @@ describe('Transaction Replacement Scenarios', () => {
 			// TX1 appears in mempool
 			addTx1ToMempool();
 			await processAndWait(setup);
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// Add replacement TX2 with higher gas
 			const {newTx: tx2, addToMempool: addTx2ToMempool} = addReplacementTx(
@@ -67,7 +67,7 @@ describe('Transaction Replacement Scenarios', () => {
 			await processAndWait(setup);
 
 			// Operation should still be broadcasted with 2 txs
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 			assertOperationTxCount(operation, 2);
 
 			// TX2 gets included (this consumes nonce 5)
@@ -144,7 +144,7 @@ describe('Transaction Replacement Scenarios', () => {
 			const tx1Hash = operation.transactions[0].hash;
 			addTx1ToMempool();
 			await processAndWait(setup);
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// Add TX2 - both in mempool simultaneously
 			const {newTx: tx2, addToMempool: addTx2ToMempool} = addReplacementTx(
@@ -161,11 +161,11 @@ describe('Transaction Replacement Scenarios', () => {
 
 			// Both txs should be tracked, operation still Broadcasted
 			assertOperationTxCount(operation, 2);
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// Both txs should be Broadcasted
-			assertTxInclusion(operation.transactions[0], 'Broadcasted');
-			assertTxInclusion(operation.transactions[1], 'Broadcasted');
+			assertTxInclusion(operation.transactions[0], 'InMemPool');
+			assertTxInclusion(operation.transactions[1], 'InMemPool');
 		});
 
 		it('replacement-failure-fallback: TX2 replaces TX1, but TX2 fails', async () => {
@@ -252,7 +252,7 @@ describe('Transaction Replacement Scenarios', () => {
 
 			// Operation should have 3 txs
 			assertOperationTxCount(operation, 3);
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// TX3 gets included (consumes nonce 5)
 			setup.controller.includeTx(tx3Hash, 'success');
@@ -299,7 +299,7 @@ describe('Transaction Replacement Scenarios', () => {
 			await processAndWait(setup);
 
 			assertOperationTxCount(operation, 2);
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 		});
 
 		it('replacement-flapping: TX appears/disappears from mempool intermittently', async () => {
@@ -312,7 +312,7 @@ describe('Transaction Replacement Scenarios', () => {
 			// Appear in mempool
 			addToMempool();
 			await processAndWait(setup);
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// Disappear from mempool
 			setup.controller.removeFromMempool(txHash);
@@ -322,7 +322,7 @@ describe('Transaction Replacement Scenarios', () => {
 			// Reappear in mempool
 			addToMempool();
 			await processAndWait(setup);
-			assertOperationInclusion(operation, 'Broadcasted');
+			assertOperationInclusion(operation, 'InMemPool');
 
 			// Finally get included
 			setup.controller.includeTx(txHash, 'success');
