@@ -9,7 +9,10 @@ import {resetHashCounter} from '../fixtures/transactions.js';
 import {resetOpIdCounter} from '../fixtures/operations.js';
 import {createMockProvider} from '../mocks/MockEIP1193Provider.js';
 import {initTransactionProcessor} from '../../src/index.js';
-import type {OnchainOperation, BroadcastedTransaction} from '../../src/index.js';
+import type {
+	OnchainOperation,
+	BroadcastedTransaction,
+} from '../../src/index.js';
 
 describe('Edge Cases for Full Coverage', () => {
 	let setup: TestSetup;
@@ -36,7 +39,7 @@ describe('Edge Cases for Full Coverage', () => {
 			let callCount = 0;
 			const customProvider = {
 				async request(args: {method: string; params?: unknown[]}) {
-					const result = await provider.request(args);
+					const result = await provider.request(args as any);
 					// Return null for the finalized block request (second eth_getBlockByNumber call)
 					if (args.method === 'eth_getBlockByNumber') {
 						callCount++;
@@ -172,9 +175,9 @@ describe('Edge Cases for Full Coverage', () => {
 							return null;
 						}
 						// Second call (retry) returns the tx
-						return await provider.request(args);
+						return await provider.request(args as any);
 					}
-					return await provider.request(args);
+					return await provider.request(args as any);
 				},
 			};
 
@@ -347,7 +350,7 @@ describe('Edge Cases for Full Coverage', () => {
 					) {
 						return null;
 					}
-					return await provider.request(args);
+					return await provider.request(args as any);
 				},
 			};
 
@@ -460,10 +463,10 @@ describe('Edge Cases for Full Coverage', () => {
 								maxFeePerGas: '0x1',
 								maxPriorityFeePerGas: '0x1',
 							});
-							return await provider.request(args);
+							return await provider.request(args as any);
 						}
 					}
-					return await provider.request(args);
+					return await provider.request(args as any);
 				},
 			};
 
@@ -478,5 +481,4 @@ describe('Edge Cases for Full Coverage', () => {
 			expect(operation.transactions[0].inclusion).toBe('NotFound');
 		});
 	});
-
 });
