@@ -72,7 +72,7 @@ describe('Event Types', () => {
 			const op = createOperation({transactions: [tx1]});
 
 			controller.addToMempool(mockTx1);
-			processor.add({'dual-emit': op});
+			processor.addMultiple({'dual-emit': op});
 
 			// First process: BeingFetched -> Broadcasted (status change)
 			await processor.process();
@@ -121,7 +121,7 @@ describe('Event Types', () => {
 
 			controller.addToMempool(mockTx1);
 			controller.addToMempool(mockTx2);
-			processor.add({'multi-tx-event': op});
+			processor.addMultiple({'multi-tx-event': op});
 
 			// First process: both become Broadcasted
 			await processor.process();
@@ -174,7 +174,7 @@ describe('Event Types', () => {
 			const op = createOperation({transactions: [tx1]});
 
 			controller.addToMempool(mockTx1);
-			processor.add({'no-change': op});
+			processor.addMultiple({'no-change': op});
 
 			await processor.process();
 			expect(op.state?.inclusion).toBe('Broadcasted');
@@ -206,7 +206,7 @@ describe('Event Types', () => {
 			const op = createOperation({transactions: [tx1]});
 
 			controller.addToMempool(mockTx1);
-			processor.add({'finality-test': op});
+			processor.addMultiple({'finality-test': op});
 			await processor.process();
 
 			// Include TX1
@@ -247,7 +247,7 @@ describe('Event Types', () => {
 			const op = createOperation({transactions: [tx1]});
 
 			controller.addToMempool(mockTx1);
-			processor.add({'unsub-test': op});
+			processor.addMultiple({'unsub-test': op});
 
 			// First process triggers events
 			await processor.process();

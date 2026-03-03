@@ -64,7 +64,7 @@ describe('Edge Cases for Full Coverage', () => {
 					},
 				],
 			};
-			processor.add({'test-op': operation});
+			processor.addMultiple({'test-op': operation});
 
 			// Process should return early when finalized block is null
 			await processor.process();
@@ -142,7 +142,7 @@ describe('Edge Cases for Full Coverage', () => {
 					},
 				],
 			};
-			processor.add({'test-op-retry': operation});
+			processor.addMultiple({'test-op-retry': operation});
 
 			// First process should find it in mempool
 			await processor.process();
@@ -273,7 +273,7 @@ describe('Edge Cases for Full Coverage', () => {
 					},
 				],
 			};
-			processor.add({'test-no-provider': operation});
+			processor.addMultiple({'test-no-provider': operation});
 
 			// Set provider to undefined
 			processor.setProvider(undefined as any);
@@ -340,7 +340,7 @@ describe('Edge Cases for Full Coverage', () => {
 					},
 				],
 			};
-			processor.add({'test-op-null-latest': operation});
+			processor.addMultiple({'test-op-null-latest': operation});
 
 			// Process should return early when latest block is null
 			await processor.process();
@@ -387,7 +387,7 @@ describe('Edge Cases for Full Coverage', () => {
 					},
 				],
 			};
-			processor.add({'test-op-being-fetched': operation});
+			processor.addMultiple({'test-op-being-fetched': operation});
 
 			// Create a provider that returns the first tx as NotFound but the second remains BeingFetched (tx not found)
 			let callCount = 0;

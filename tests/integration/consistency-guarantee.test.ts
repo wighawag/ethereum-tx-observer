@@ -2,11 +2,11 @@
  * Critical Consistency Tests for Local State Handler
  *
  * These tests verify the guarantee from plans/testing-plan.md:
- * "After add() returns, any subsequent operation event MUST include the newly added transaction."
+ * "After addMultiple() returns, any subsequent operation event MUST include the newly added transaction."
  *
  * The potential race condition:
  * 1. process() starts iterating over op.transactions (snapshot or live)
- * 2. While iterating, add() is called with a new TX
+ * 2. While iterating, addMultiple() is called with a new TX
  * 3. The new TX is pushed to op.transactions
  * 4. process() continues/finishes iteration
  * 5. computeOperationStatus() is called
@@ -87,7 +87,7 @@ describe('Consistency Guarantee with Local State Handler', () => {
 			const op = createOperation({transactions: [tx1]});
 
 			controller.addToMempool(mockTx1);
-			processor.add({'consistency-test': op});
+			processor.addMultiple({'consistency-test': op});
 
 			// First process to establish TX1 as Broadcasted
 			await processor.process();
@@ -119,7 +119,9 @@ describe('Consistency Guarantee with Local State Handler', () => {
 						injected = true;
 						// Add TX2 to the operation mid-process
 						controller.addToMempool(mockTx2);
-						processor.add({'consistency-test': {...op, transactions: [tx2]}});
+						processor.addMultiple({
+							'consistency-test': {...op, transactions: [tx2]},
+						});
 					}
 				},
 			);
@@ -178,7 +180,7 @@ describe('Consistency Guarantee with Local State Handler', () => {
 			const op = createOperation({transactions: [tx1]});
 
 			controller.addToMempool(mockTx1);
-			processor.add({'snapshot-test': op});
+			processor.addMultiple({'snapshot-test': op});
 			await processor.process();
 			expect(op.state?.inclusion).toBe('Broadcasted');
 
@@ -198,7 +200,9 @@ describe('Consistency Guarantee with Local State Handler', () => {
 				if (!added) {
 					added = true;
 					controller.addToMempool(mockTx2);
-					processor.add({'snapshot-test': {...op, transactions: [tx2]}});
+					processor.addMultiple({
+						'snapshot-test': {...op, transactions: [tx2]},
+					});
 				}
 			});
 
@@ -237,7 +241,7 @@ describe('Consistency Guarantee with Local State Handler', () => {
 			 * Test the exact sequence described in the plan:
 			 * 1. process() starts
 			 * 2. processOperation() begins iterating transactions
-			 * 3. DURING iteration: add() is called with new TX
+			 * 3. DURING iteration: addMultiple() is called with new TX
 			 * 4. computeOperationStatus() is called
 			 * 5. Event is emitted
 			 *
@@ -255,7 +259,7 @@ describe('Consistency Guarantee with Local State Handler', () => {
 			});
 
 			controller.addToMempool(mockTx1);
-			processor.add({'mid-iteration-add': op});
+			processor.addMultiple({'mid-iteration-add': op});
 			await processor.process();
 
 			const emissionCountBefore = emissions.length;
@@ -276,7 +280,9 @@ describe('Consistency Guarantee with Local State Handler', () => {
 					if (!injected) {
 						injected = true;
 						controller.addToMempool(mockTx2);
-						processor.add({'mid-iteration-add': {...op, transactions: [tx2]}});
+						processor.addMultiple({
+							'mid-iteration-add': {...op, transactions: [tx2]},
+						});
 					}
 				},
 			);
@@ -329,7 +335,7 @@ describe('Consistency Guarantee with Local State Handler', () => {
 
 			controller.addToMempool(mockTx1);
 			controller.addToMempool(mockTx2);
-			processor.add({'multi-tx': op});
+			processor.addMultiple({'multi-tx': op});
 
 			await processor.process();
 
@@ -364,7 +370,7 @@ describe('Consistency Guarantee with Local State Handler', () => {
 
 			controller.addToMempool(mockTx1);
 			controller.addToMempool(mockTx2);
-			processor.add({'merged-status': op});
+			processor.addMultiple({'merged-status': op});
 			await processor.process();
 
 			// Include TX1, TX2 stays in mempool

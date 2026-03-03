@@ -412,7 +412,7 @@ describe('Operation Status Merging', () => {
 				transactions: [],
 			});
 
-			setup.processor.add({'test-empty': op});
+			setup.processor.addMultiple({'test-empty': op});
 			await processAndWait(setup);
 
 			// With no transactions, the operation stays at initial state
@@ -436,10 +436,10 @@ describe('Operation Status Merging', () => {
 				transactions: [tx],
 			});
 
-			setup.processor.add({'dedup-test': op});
+			setup.processor.addMultiple({'dedup-test': op});
 
 			// Try to add same tx again
-			setup.processor.add({
+			setup.processor.addMultiple({
 				'dedup-test': {
 					...op,
 					transactions: [tx], // Same tx
@@ -456,11 +456,11 @@ describe('Operation Status Merging', () => {
 				transactions: [tx1],
 			});
 
-			setup.processor.add({'same-op-id': op});
+			setup.processor.addMultiple({'same-op-id': op});
 
 			// Add another tx to same operation
 			const tx2 = createBroadcastedTx({nonce: 6});
-			setup.processor.add({
+			setup.processor.addMultiple({
 				'same-op-id': {
 					transactions: [tx2],
 				},

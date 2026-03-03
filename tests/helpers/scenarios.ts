@@ -89,7 +89,7 @@ export function addSingleTxOperation(
 	});
 
 	const operationId = `op-${++counter}`;
-	setup.processor.add({[operationId]: operation});
+	setup.processor.addMultiple({[operationId]: operation});
 
 	return {
 		operation,
@@ -115,7 +115,7 @@ export function addReplacementTx(
 	});
 
 	// Add the new tx to the operation via processor.add using the same operation ID
-	setup.processor.add({
+	setup.processor.addMultiple({
 		[operationId]: {
 			...operation,
 			transactions: [newTx],

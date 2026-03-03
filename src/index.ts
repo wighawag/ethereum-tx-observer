@@ -229,14 +229,14 @@ export function initTransactionProcessor(config: {
 	// Maintain tx hash lookup for efficient updates
 	const txToOp: {[txHash: string]: OnchainOperation} = {};
 
-	function add(operations: {[id: string]: OnchainOperation}) {
+	function addMultiple(operations: {[id: string]: OnchainOperation}) {
 		logger.debug(`adding ${Object.keys(operations).length} operations...`);
 		for (const entry of Object.entries(operations)) {
-			addSingle(entry[0], entry[1]);
+			add(entry[0], entry[1]);
 		}
 	}
 
-	function addSingle(id: string, operation: OnchainOperation) {
+	function add(id: string, operation: OnchainOperation) {
 		logger.debug(`adding operation ${id}...`);
 		const existing = opsById[id];
 		if (!existing) {
@@ -350,7 +350,7 @@ export function initTransactionProcessor(config: {
 		/* v8 ignore stop */
 
 		// CONSISTENCY GUARANTEE: Snapshot transactions to avoid mid-iteration modifications
-		// This ensures stable iteration while allowing new txs to be added via add()
+		// This ensures stable iteration while allowing new txs to be added via addMultiple()
 		const txsSnapshot = [...op.transactions];
 		const initialTxCount = txsSnapshot.length;
 
@@ -579,10 +579,11 @@ export function initTransactionProcessor(config: {
 		setProvider(newProvider: EIP1193Provider) {
 			provider = newProvider;
 		},
-		add,
+
 		remove,
 		clear,
-		addSingle,
+		add,
+		addMultiple,
 
 		process: process, // TODO: throttle(process, 1000) as typeof process, // TODO throotle delay
 
