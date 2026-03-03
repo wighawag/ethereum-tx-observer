@@ -341,9 +341,11 @@ export function initTransactionProcessor(config: {
 			latestFinalizedBlockTime: number;
 		},
 	): Promise<boolean> {
+		/* v8 ignore start - defensive check: provider verified in process() */
 		if (!provider) {
 			return false;
 		}
+		/* v8 ignore stop */
 
 		// CONSISTENCY GUARANTEE: Snapshot transactions to avoid mid-iteration modifications
 		// This ensures stable iteration while allowing new txs to be added via add()
@@ -412,9 +414,11 @@ export function initTransactionProcessor(config: {
 			latestFinalizedBlockTime: number;
 		},
 	): Promise<boolean> {
+		/* v8 ignore start - defensive check: provider verified in process() */
 		if (!provider) {
 			return false;
 		}
+		/* v8 ignore stop */
 
 		if (tx.inclusion === 'Included') {
 			if (tx.final) {
