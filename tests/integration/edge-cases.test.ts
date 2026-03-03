@@ -11,6 +11,7 @@ import {createMockProvider} from '../mocks/MockEIP1193Provider.js';
 import {initTransactionProcessor} from '../../src/index.js';
 import type {
 	OnchainOperation,
+	OnchainOperationEvent,
 	BroadcastedTransaction,
 } from '../../src/index.js';
 
@@ -55,7 +56,6 @@ describe('Edge Cases for Full Coverage', () => {
 
 			// Add an operation
 			const operation: OnchainOperation = {
-				id: 'test-op',
 				transactions: [
 					{
 						hash: '0x1234567890123456789012345678901234567890123456789012345678901234',
@@ -64,7 +64,7 @@ describe('Edge Cases for Full Coverage', () => {
 					},
 				],
 			};
-			processor.add([operation]);
+			processor.add({'test-op': operation});
 
 			// Process should return early when finalized block is null
 			await processor.process();
@@ -112,8 +112,8 @@ describe('Edge Cases for Full Coverage', () => {
 			});
 
 			const emissions: OnchainOperation[] = [];
-			processor.onOperation((op) => {
-				emissions.push({...op, transactions: [...op.transactions]});
+			processor.onOperation((event) => {
+				emissions.push({...event.operation, transactions: [...event.operation.transactions]});
 				return () => {};
 			});
 
@@ -130,7 +130,6 @@ describe('Edge Cases for Full Coverage', () => {
 			});
 
 			const operation: OnchainOperation = {
-				id: 'test-op-retry',
 				transactions: [
 					{
 						hash: txHash,
@@ -140,7 +139,7 @@ describe('Edge Cases for Full Coverage', () => {
 					},
 				],
 			};
-			processor.add([operation]);
+			processor.add({'test-op-retry': operation});
 
 			// First process should find it in mempool
 			await processor.process();
@@ -179,7 +178,7 @@ describe('Edge Cases for Full Coverage', () => {
 			const {processor} = setup;
 			let callCount = 0;
 
-			const listener = (_op: OnchainOperation) => {
+			const listener = (_event: OnchainOperationEvent) => {
 				callCount++;
 				return () => {};
 			};
@@ -199,7 +198,7 @@ describe('Edge Cases for Full Coverage', () => {
 			const {processor} = setup;
 			let callCount = 0;
 
-			const listener = (_op: OnchainOperation) => {
+			const listener = (_event: OnchainOperationEvent) => {
 				callCount++;
 				return () => {};
 			};
@@ -218,7 +217,7 @@ describe('Edge Cases for Full Coverage', () => {
 			const {operation, addToMempool} = addSingleTxOperation(setup, {nonce: 5});
 
 			let callCount = 0;
-			const listener = (_op: OnchainOperation) => {
+			const listener = (_event: OnchainOperationEvent) => {
 				callCount++;
 				return () => {};
 			};
@@ -240,7 +239,7 @@ describe('Edge Cases for Full Coverage', () => {
 			const {operation, addToMempool} = addSingleTxOperation(setup, {nonce: 5});
 
 			let callCount = 0;
-			const listener = (_op: OnchainOperation) => {
+			const listener = (_event: OnchainOperationEvent) => {
 				callCount++;
 				return () => {};
 			};
@@ -263,7 +262,6 @@ describe('Edge Cases for Full Coverage', () => {
 			const {processor} = createTestSetup({finality: 12});
 
 			const operation: OnchainOperation = {
-				id: 'test-no-provider',
 				transactions: [
 					{
 						hash: '0x1234567890123456789012345678901234567890123456789012345678901234',
@@ -272,7 +270,7 @@ describe('Edge Cases for Full Coverage', () => {
 					},
 				],
 			};
-			processor.add([operation]);
+			processor.add({'test-no-provider': operation});
 
 			// Set provider to undefined
 			processor.setProvider(undefined as any);
@@ -290,7 +288,7 @@ describe('Edge Cases for Full Coverage', () => {
 			const {operation, addToMempool} = addSingleTxOperation(setup, {nonce: 5});
 
 			let statusEventCount = 0;
-			const statusListener = (_op: OnchainOperation) => {
+			const statusListener = (_event: OnchainOperationEvent) => {
 				statusEventCount++;
 				return () => {};
 			};
@@ -331,7 +329,6 @@ describe('Edge Cases for Full Coverage', () => {
 
 			// Add an operation
 			const operation: OnchainOperation = {
-				id: 'test-op-null-latest',
 				transactions: [
 					{
 						hash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
@@ -340,7 +337,7 @@ describe('Edge Cases for Full Coverage', () => {
 					},
 				],
 			};
-			processor.add([operation]);
+			processor.add({'test-op-null-latest': operation});
 
 			// Process should return early when latest block is null
 			await processor.process();
@@ -359,14 +356,13 @@ describe('Edge Cases for Full Coverage', () => {
 			});
 
 			const emissions: OnchainOperation[] = [];
-			processor.onOperation((op) => {
-				emissions.push({...op, transactions: [...op.transactions]});
+			processor.onOperation((event) => {
+				emissions.push({...event.operation, transactions: [...event.operation.transactions]});
 				return () => {};
 			});
 
 			// Create an operation with two txs: one NotFound and one BeingFetched
 			const operation: OnchainOperation = {
-				id: 'test-op-being-fetched',
 				transactions: [
 					{
 						hash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
@@ -385,7 +381,7 @@ describe('Edge Cases for Full Coverage', () => {
 					},
 				],
 			};
-			processor.add([operation]);
+			processor.add({'test-op-being-fetched': operation});
 
 			// Create a provider that returns the first tx as NotFound but the second remains BeingFetched (tx not found)
 			let callCount = 0;

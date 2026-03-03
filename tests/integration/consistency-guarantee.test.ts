@@ -51,8 +51,8 @@ describe('Consistency Guarantee with Local State Handler', () => {
 		});
 
 		emissions = [];
-		cleanup = processor.onOperation((op) => {
-			emissions.push(structuredClone(op));
+		cleanup = processor.onOperation((event) => {
+			emissions.push(structuredClone(event.operation));
 			return () => {};
 		});
 	});
@@ -84,10 +84,10 @@ describe('Consistency Guarantee with Local State Handler', () => {
 				from: tx1.from,
 				nonce: 5,
 			});
-			const op = createOperation({id: 'consistency-test', transactions: [tx1]});
+			const op = createOperation({transactions: [tx1]});
 
 			controller.addToMempool(mockTx1);
-			processor.add([op]);
+			processor.add({'consistency-test': op});
 
 			// First process to establish TX1 as Broadcasted
 			await processor.process();
@@ -119,7 +119,7 @@ describe('Consistency Guarantee with Local State Handler', () => {
 						injected = true;
 						// Add TX2 to the operation mid-process
 						controller.addToMempool(mockTx2);
-						processor.add([{...op, transactions: [tx2]}]);
+						processor.add({'consistency-test': {...op, transactions: [tx2]}});
 					}
 				},
 			);
@@ -134,7 +134,7 @@ describe('Consistency Guarantee with Local State Handler', () => {
 
 			// Get the latest emission after TX1 was included
 			const includedEmission = emissions.find(
-				(e) => e.id === 'consistency-test' && e.state?.inclusion === 'Included',
+				(e) => e.state?.inclusion === 'Included',
 			);
 
 			expect(includedEmission).toBeDefined();
@@ -175,10 +175,10 @@ describe('Consistency Guarantee with Local State Handler', () => {
 				from: tx1.from,
 				nonce: 5,
 			});
-			const op = createOperation({id: 'snapshot-test', transactions: [tx1]});
+			const op = createOperation({transactions: [tx1]});
 
 			controller.addToMempool(mockTx1);
-			processor.add([op]);
+			processor.add({'snapshot-test': op});
 			await processor.process();
 			expect(op.state?.inclusion).toBe('Broadcasted');
 
@@ -198,7 +198,7 @@ describe('Consistency Guarantee with Local State Handler', () => {
 				if (!added) {
 					added = true;
 					controller.addToMempool(mockTx2);
-					processor.add([{...op, transactions: [tx2]}]);
+					processor.add({'snapshot-test': {...op, transactions: [tx2]}});
 				}
 			});
 
@@ -217,9 +217,7 @@ describe('Consistency Guarantee with Local State Handler', () => {
 			expect(emissions.length).toBeGreaterThan(emissionCountBefore);
 
 			// Find the emission for our operation after the status change
-			const newEmissions = emissions
-				.slice(emissionCountBefore)
-				.filter((e) => e.id === 'snapshot-test');
+			const newEmissions = emissions.slice(emissionCountBefore);
 
 			expect(newEmissions.length).toBeGreaterThan(0);
 
@@ -253,12 +251,11 @@ describe('Consistency Guarantee with Local State Handler', () => {
 				nonce: 5,
 			});
 			const op = createOperation({
-				id: 'mid-iteration-add',
 				transactions: [tx1],
 			});
 
 			controller.addToMempool(mockTx1);
-			processor.add([op]);
+			processor.add({'mid-iteration-add': op});
 			await processor.process();
 
 			const emissionCountBefore = emissions.length;
@@ -279,7 +276,7 @@ describe('Consistency Guarantee with Local State Handler', () => {
 					if (!injected) {
 						injected = true;
 						controller.addToMempool(mockTx2);
-						processor.add([{...op, transactions: [tx2]}]);
+						processor.add({'mid-iteration-add': {...op, transactions: [tx2]}});
 					}
 				},
 			);
@@ -294,10 +291,8 @@ describe('Consistency Guarantee with Local State Handler', () => {
 			// Should have new emissions
 			expect(emissions.length).toBeGreaterThan(emissionCountBefore);
 
-			// Find the emission for our operation after the change
-			const relevantEmissions = emissions
-				.slice(emissionCountBefore)
-				.filter((e) => e.id === 'mid-iteration-add');
+			// Find the emissions after the change
+			const relevantEmissions = emissions.slice(emissionCountBefore);
 
 			// At least one emission should have both transactions
 			const hasCompleteEmission = relevantEmissions.some(
@@ -329,13 +324,12 @@ describe('Consistency Guarantee with Local State Handler', () => {
 			});
 
 			const op = createOperation({
-				id: 'multi-tx',
 				transactions: [tx1, tx2],
 			});
 
 			controller.addToMempool(mockTx1);
 			controller.addToMempool(mockTx2);
-			processor.add([op]);
+			processor.add({'multi-tx': op});
 
 			await processor.process();
 
@@ -365,13 +359,12 @@ describe('Consistency Guarantee with Local State Handler', () => {
 			});
 
 			const op = createOperation({
-				id: 'merged-status',
 				transactions: [tx1, tx2],
 			});
 
 			controller.addToMempool(mockTx1);
 			controller.addToMempool(mockTx2);
-			processor.add([op]);
+			processor.add({'merged-status': op});
 			await processor.process();
 
 			// Include TX1, TX2 stays in mempool

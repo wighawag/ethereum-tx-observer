@@ -63,7 +63,7 @@ describe('Dropped Transaction Scenarios', () => {
 			const nonce = 5;
 
 			// Create operation with TX1
-			const {operation, addToMempool: addTx1ToMempool} = addSingleTxOperation(
+			const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
 				setup,
 				{nonce},
 			);
@@ -76,6 +76,7 @@ describe('Dropped Transaction Scenarios', () => {
 			// Add TX2 with same nonce
 			const {newTx: tx2, addToMempool: addTx2ToMempool} = addReplacementTx(
 				setup,
+				operationId,
 				operation,
 				{
 					nonce,
@@ -105,7 +106,7 @@ describe('Dropped Transaction Scenarios', () => {
 			const nonce = 5;
 
 			// Create operation with TX1
-			const {operation, addToMempool: addTx1ToMempool} = addSingleTxOperation(
+			const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
 				setup,
 				{nonce},
 			);
@@ -118,6 +119,7 @@ describe('Dropped Transaction Scenarios', () => {
 			// Add TX2 with different nonce (can both be valid)
 			const {newTx: tx2, addToMempool: addTx2ToMempool} = addReplacementTx(
 				setup,
+				operationId,
 				operation,
 				{
 					nonce: nonce + 1,

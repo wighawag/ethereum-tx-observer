@@ -65,7 +65,6 @@ export type OnchainOperationStatus =
 	  };
 
 export type OnchainOperation = {
-	id: string;
 	transactions: BroadcastedTransaction[];
 	state?: OnchainOperationStatus;
 
@@ -77,6 +76,14 @@ export type OnchainOperation = {
 		| {
 				functionCall: {name: string; result: `0x${string}`};
 		  };
+};
+
+/**
+ * Event payload that includes both the operation ID and the operation data.
+ */
+export type OnchainOperationEvent = {
+	id: string;
+	operation: OnchainOperation;
 };
 
 /**
@@ -212,36 +219,34 @@ export function initTransactionProcessor(config: {
 }) {
 	const emitter = new Emitter<{
 		// Fires when any TX in the operation changes (for persistence)
-		operation: OnchainOperation;
+		operation: OnchainOperationEvent;
 		// Fires only when operation status changes (for UI/state updates)
-		'operation:status': OnchainOperation;
+		'operation:status': OnchainOperationEvent;
 	}>();
 
 	let provider: EIP1193ProviderWithoutEvents | undefined = config.provider;
-	const $ops: OnchainOperation[] = [];
 	const opsById: {[id: string]: OnchainOperation} = {};
 	// Maintain tx hash lookup for efficient updates
 	const txToOp: {[txHash: string]: OnchainOperation} = {};
 
-	function add(operations: OnchainOperation[]) {
-		logger.debug(`adding ${operations.length} operations...`);
-		for (const op of operations) {
-			_addSingle(op);
+	function add(operations: {[id: string]: OnchainOperation}) {
+		logger.debug(`adding ${Object.keys(operations).length} operations...`);
+		for (const entry of Object.entries(operations)) {
+			_addSingle(entry[0], entry[1]);
 		}
 	}
 
-	function _addSingle(operation: OnchainOperation) {
-		logger.debug(`adding operation ${operation.id}...`);
-		if (!opsById[operation.id]) {
-			opsById[operation.id] = operation;
-			$ops.push(operation);
+	function _addSingle(id: string, operation: OnchainOperation) {
+		logger.debug(`adding operation ${id}...`);
+		const existing = opsById[id];
+		if (!existing) {
+			opsById[id] = operation;
 			// Index all tx hashes for this operation
 			for (const tx of operation.transactions) {
 				txToOp[tx.hash] = operation;
 			}
 		} else {
 			// Update existing operation - merge transactions
-			const existing = opsById[operation.id];
 			for (const tx of operation.transactions) {
 				if (!txToOp[tx.hash]) {
 					existing.transactions.push(tx);
@@ -253,23 +258,20 @@ export function initTransactionProcessor(config: {
 
 	function clear() {
 		logger.debug(`clearing operations...`);
-		for (const op of $ops) {
+		const keys = Object.keys(opsById);
+		for (const key of keys) {
+			const op = opsById[key];
 			for (const tx of op.transactions) {
 				delete txToOp[tx.hash];
 			}
-			delete opsById[op.id];
+			delete opsById[key];
 		}
-		$ops.splice(0, $ops.length);
 	}
 
 	function remove(operationId: string) {
 		logger.debug(`removing operation ${operationId}...`);
 		const op = opsById[operationId];
 		if (op) {
-			const index = $ops.indexOf(op);
-			if (index >= 0) {
-				$ops.splice(index, 1);
-			}
 			// Remove tx hash mappings
 			for (const tx of op.transactions) {
 				delete txToOp[tx.hash];
@@ -314,10 +316,8 @@ export function initTransactionProcessor(config: {
 
 		logger.debug(`latestFinalizedBlock: ${latestFinalizedBlockNumber}`);
 
-		logger.debug(`operations: ${$ops.length}`);
-
-		for (const op of $ops) {
-			await processOperation(op, {
+		for (const id of Object.keys(opsById)) {
+			await processOperation(id, opsById[id], {
 				latestBlockNumber,
 				latestBlockTime,
 				latestFinalizedBlock,
@@ -329,6 +329,7 @@ export function initTransactionProcessor(config: {
 	}
 
 	async function processOperation(
+		id: string,
 		op: OnchainOperation,
 		{
 			latestBlockNumber,
@@ -386,15 +387,15 @@ export function initTransactionProcessor(config: {
 		}
 
 		// Emit events if still tracked
-		if (opsById[op.id]) {
+		if (opsById[id]) {
 			// Emit 'operation' for any TX change (for persistence)
 			if (anyTxChanged || txsWereAdded) {
-				emitter.emit('operation', op);
+				emitter.emit('operation', {id, operation: op});
 			}
 
 			// Emit 'operation:status' only when operation status changes (for UI/state)
 			if (statusChanged) {
-				emitter.emit('operation:status', op);
+				emitter.emit('operation:status', {id, operation: op});
 			}
 		}
 
@@ -585,16 +586,16 @@ export function initTransactionProcessor(config: {
 		process: process, // TODO: throttle(process, 1000) as typeof process, // TODO throotle delay
 
 		// 'operation' fires when any TX in the operation changes (for persistence)
-		onOperation: (listener: (operation: OnchainOperation) => () => void) =>
+		onOperation: (listener: (event: OnchainOperationEvent) => () => void) =>
 			emitter.on('operation', listener),
-		offOperation: (listener: (operation: OnchainOperation) => void) =>
+		offOperation: (listener: (event: OnchainOperationEvent) => void) =>
 			emitter.off('operation', listener),
 
 		// 'operation:status' fires only when operation status changes (for UI/state updates)
 		onOperationStatus: (
-			listener: (operation: OnchainOperation) => () => void,
+			listener: (event: OnchainOperationEvent) => () => void,
 		) => emitter.on('operation:status', listener),
-		offOperationStatus: (listener: (operation: OnchainOperation) => void) =>
+		offOperationStatus: (listener: (event: OnchainOperationEvent) => void) =>
 			emitter.off('operation:status', listener),
 	};
 }

@@ -35,7 +35,7 @@ describe('Transaction Replacement Scenarios', () => {
 			const nonce = 5;
 
 			// Create operation with TX1
-			const {operation, addToMempool: addTx1ToMempool} = addSingleTxOperation(
+			const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
 				setup,
 				{
 					nonce,
@@ -51,6 +51,7 @@ describe('Transaction Replacement Scenarios', () => {
 			// Add replacement TX2 with higher gas
 			const {newTx: tx2, addToMempool: addTx2ToMempool} = addReplacementTx(
 				setup,
+				operationId,
 				operation,
 				{
 					nonce,
@@ -88,7 +89,7 @@ describe('Transaction Replacement Scenarios', () => {
 			const nonce = 5;
 
 			// Create operation with TX1
-			const {operation, addToMempool: addTx1ToMempool} = addSingleTxOperation(
+			const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
 				setup,
 				{
 					nonce,
@@ -101,6 +102,7 @@ describe('Transaction Replacement Scenarios', () => {
 			// Add TX2 with higher gas
 			const {newTx: tx2, addToMempool: addTx2ToMempool} = addReplacementTx(
 				setup,
+				operationId,
 				operation,
 				{
 					nonce,
@@ -132,7 +134,7 @@ describe('Transaction Replacement Scenarios', () => {
 			const nonce = 5;
 
 			// Create operation with TX1
-			const {operation, addToMempool: addTx1ToMempool} = addSingleTxOperation(
+			const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
 				setup,
 				{nonce},
 			);
@@ -144,6 +146,7 @@ describe('Transaction Replacement Scenarios', () => {
 			// Add TX2 - both in mempool simultaneously
 			const {newTx: tx2, addToMempool: addTx2ToMempool} = addReplacementTx(
 				setup,
+				operationId,
 				operation,
 				{
 					nonce,
@@ -166,7 +169,7 @@ describe('Transaction Replacement Scenarios', () => {
 			const nonce = 5;
 
 			// Create operation with TX1
-			const {operation, addToMempool: addTx1ToMempool} = addSingleTxOperation(
+			const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
 				setup,
 				{nonce},
 			);
@@ -177,6 +180,7 @@ describe('Transaction Replacement Scenarios', () => {
 			// Add TX2 with higher gas
 			const {newTx: tx2, addToMempool: addTx2ToMempool} = addReplacementTx(
 				setup,
+				operationId,
 				operation,
 				{
 					nonce,
@@ -201,7 +205,7 @@ describe('Transaction Replacement Scenarios', () => {
 			const nonce = 5;
 
 			// Create operation with TX1
-			const {operation, addToMempool: addTx1ToMempool} = addSingleTxOperation(
+			const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
 				setup,
 				{
 					nonce,
@@ -214,6 +218,7 @@ describe('Transaction Replacement Scenarios', () => {
 			// Add TX2
 			const {newTx: tx2, addToMempool: addTx2ToMempool} = addReplacementTx(
 				setup,
+				operationId,
 				operation,
 				{
 					nonce,
@@ -228,6 +233,7 @@ describe('Transaction Replacement Scenarios', () => {
 			// Add TX3
 			const {newTx: tx3, addToMempool: addTx3ToMempool} = addReplacementTx(
 				setup,
+				operationId,
 				operation,
 				{
 					nonce,
@@ -263,7 +269,7 @@ describe('Transaction Replacement Scenarios', () => {
 			const nonce = 5;
 
 			// Create operation with TX1
-			const {operation, addToMempool: addTx1ToMempool} = addSingleTxOperation(
+			const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
 				setup,
 				{nonce},
 			);
@@ -273,6 +279,7 @@ describe('Transaction Replacement Scenarios', () => {
 			// Add TX2 without processing yet
 			const {newTx: tx2, addToMempool: addTx2ToMempool} = addReplacementTx(
 				setup,
+				operationId,
 				operation,
 				{
 					nonce,
@@ -326,7 +333,7 @@ describe('Transaction Replacement Scenarios', () => {
 			// the operation should report success
 
 			// Create operation with TX1
-			const {operation, addToMempool: addTx1ToMempool} = addSingleTxOperation(
+			const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
 				setup,
 				{nonce},
 			);
@@ -337,6 +344,7 @@ describe('Transaction Replacement Scenarios', () => {
 			// Add TX2 with different nonce (so both can be included - edge case)
 			const {newTx: tx2, addToMempool: addTx2ToMempool} = addReplacementTx(
 				setup,
+				operationId,
 				operation,
 				{
 					nonce: nonce + 1, // Different nonce

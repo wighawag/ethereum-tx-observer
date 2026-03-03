@@ -30,13 +30,10 @@ export function createOperation(
 		transactions?: BroadcastedTransaction[];
 	} = {},
 ): OnchainOperation {
-	const id = overrides.id || generateOpId();
-
 	// Default to one pending transaction if none provided
 	const transactions = overrides.transactions || [createBroadcastedTx({})];
 
 	return {
-		id,
 		transactions,
 		state: overrides.state,
 	};

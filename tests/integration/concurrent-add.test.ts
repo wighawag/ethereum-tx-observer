@@ -45,10 +45,10 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 				from: tx1.from,
 				nonce: 5,
 			});
-			const op = createOperation({id: 'op1', transactions: [tx1]});
+			const op = createOperation({transactions: [tx1]});
 
 			setup.controller.addToMempool(mockTx1);
-			setup.processor.add([op]);
+			setup.processor.add({'op1': op});
 
 			// Start processing - TX1 becomes Broadcasted
 			await setup.processor.process();
@@ -66,7 +66,7 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 				maxFeePerGas: '0x77359400', // Higher gas
 			});
 			setup.controller.addToMempool(mockTx2);
-			setup.processor.add([{...op, transactions: [tx2]}]);
+			setup.processor.add({'op1': {...op, transactions: [tx2]}});
 
 			// Include TX2 to trigger a state change
 			setup.controller.includeTx(tx2.hash, 'success');
@@ -91,10 +91,10 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 				from: tx1.from,
 				nonce: 5,
 			});
-			const op = createOperation({id: 'op1', transactions: [tx1]});
+			const op = createOperation({transactions: [tx1]});
 
 			setup.controller.addToMempool(mockTx1);
-			setup.processor.add([op]);
+			setup.processor.add({'op1': op});
 
 			// Use a hook to inject tx2 mid-process
 			const tx2 = createBroadcastedTx({nonce: 5, from: TEST_ACCOUNT});
@@ -111,7 +111,7 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 					if (!hookCalled) {
 						hookCalled = true;
 						setup.controller.addToMempool(mockTx2);
-						setup.processor.add([{...op, transactions: [tx2]}]);
+						setup.processor.add({'op1': {...op, transactions: [tx2]}});
 					}
 				},
 			);
@@ -133,7 +133,7 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 
 	describe('Concurrent Add During Process', () => {
 		it('concurrent-add-during-process: Call add with new tx while process is running', async () => {
-			const {operation, addToMempool} = addSingleTxOperation(setup, {nonce: 5});
+			const {operation, operationId, addToMempool} = addSingleTxOperation(setup, {nonce: 5});
 			addToMempool();
 
 			// Start process
@@ -151,7 +151,7 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 				maxFeePerGas: '0x77359400',
 			});
 			setup.controller.addToMempool(mockTx2);
-			setup.processor.add([{...operation, transactions: [tx2]}]);
+			setup.processor.add({[operationId]: {...operation, transactions: [tx2]}});
 
 			await processPromise;
 
@@ -167,10 +167,10 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 				from: tx1.from,
 				nonce: 5,
 			});
-			const op = createOperation({id: 'shared-id', transactions: [tx1]});
+			const op = createOperation({transactions: [tx1]});
 
 			setup.controller.addToMempool(mockTx1);
-			setup.processor.add([op]);
+			setup.processor.add({'shared-id': op});
 
 			// Start process
 			const processPromise = setup.processor.process();
@@ -183,12 +183,11 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 				nonce: 6,
 			});
 			setup.controller.addToMempool(mockTx2);
-			setup.processor.add([
-				{
-					id: 'shared-id',
+			setup.processor.add({
+				'shared-id': {
 					transactions: [tx2],
 				},
-			]);
+			});
 
 			await processPromise;
 
@@ -205,10 +204,10 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 				from: tx1.from,
 				nonce: 5,
 			});
-			const op = createOperation({id: 'rapid-adds', transactions: [tx1]});
+			const op = createOperation({transactions: [tx1]});
 
 			setup.controller.addToMempool(mockTx1);
-			setup.processor.add([op]);
+			setup.processor.add({'rapid-adds': op});
 
 			const processPromise = setup.processor.process();
 
@@ -222,7 +221,7 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 					nonce: 6 + i,
 				});
 				setup.controller.addToMempool(mockTx);
-				setup.processor.add([{...op, transactions: [tx]}]);
+				setup.processor.add({'rapid-adds': {...op, transactions: [tx]}});
 				additionalTxs.push(tx);
 			}
 
@@ -236,7 +235,7 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 		});
 
 		it('concurrent-add-then-include: Add new tx, original tx gets included', async () => {
-			const {operation, addToMempool} = addSingleTxOperation(setup, {nonce: 5});
+			const {operation, operationId, addToMempool} = addSingleTxOperation(setup, {nonce: 5});
 			const tx1Hash = operation.transactions[0].hash;
 			addToMempool();
 
@@ -254,7 +253,7 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 				nonce: 5,
 			});
 			setup.controller.addToMempool(mockTx2);
-			setup.processor.add([{...operation, transactions: [tx2]}]);
+			setup.processor.add({[operationId]: {...operation, transactions: [tx2]}});
 
 			// TX1 gets included
 			setup.controller.includeTx(tx1Hash, 'success');
@@ -271,7 +270,7 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 
 	describe('Remove During Process', () => {
 		it('concurrent-remove-during-process: Remove operation while being processed', async () => {
-			const {operation, addToMempool} = addSingleTxOperation(setup, {nonce: 5});
+			const {operation, operationId, addToMempool} = addSingleTxOperation(setup, {nonce: 5});
 			addToMempool();
 
 			const initialEmissionCount = setup.emissions.length;
@@ -283,7 +282,7 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 				() => {
 					if (!removed) {
 						removed = true;
-						setup.processor.remove(operation.id);
+						setup.processor.remove(operationId);
 					}
 				},
 			);
@@ -309,8 +308,8 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 			const emissions: OnchainOperation[] = [];
 
 			// State handler listens for events
-			const cleanup = setup.processor.onOperation((op) => {
-				emissions.push(structuredClone(op));
+			const cleanup = setup.processor.onOperation((event) => {
+				emissions.push(structuredClone(event.operation));
 				return () => {};
 			});
 
@@ -322,14 +321,13 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 				nonce: 5,
 			});
 			const savedOp = createOperation({
-				id: 'state-handler-op',
 				transactions: [tx1],
 			});
 			// Simulate: localStorage.setItem('ops', JSON.stringify([savedOp]));
 
 			// Step 2: Add to processor
 			setup.controller.addToMempool(mockTx1);
-			setup.processor.add([savedOp]);
+			setup.processor.add({'state-handler-op': savedOp});
 
 			await setup.processor.process();
 
@@ -350,7 +348,7 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 
 			// Add to processor
 			setup.controller.addToMempool(mockTx2);
-			setup.processor.add([{...savedOp, transactions: [tx2]}]);
+			setup.processor.add({'state-handler-op': {...savedOp, transactions: [tx2]}});
 
 			// Include TX2 to trigger a status change
 			setup.controller.includeTx(tx2.hash, 'success');
@@ -377,10 +375,10 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 				from: tx1.from,
 				nonce: 5,
 			});
-			const op = createOperation({id: 'no-data-loss', transactions: [tx1]});
+			const op = createOperation({transactions: [tx1]});
 
 			setup.controller.addToMempool(mockTx1);
-			setup.processor.add([op]);
+			setup.processor.add({'no-data-loss': op});
 
 			// Process to get first emission
 			await setup.processor.process();
@@ -393,7 +391,7 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 				nonce: 5,
 			});
 			setup.controller.addToMempool(mockTx2);
-			setup.processor.add([{...op, transactions: [tx2]}]);
+			setup.processor.add({'no-data-loss': {...op, transactions: [tx2]}});
 
 			// Include TX1 to trigger a status change, which will emit both txs
 			setup.controller.includeTx(tx1.hash, 'success');

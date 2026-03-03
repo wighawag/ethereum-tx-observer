@@ -45,13 +45,13 @@ describe('Event Types', () => {
 		statusEmissions = [];
 
 		// Listen to both event types
-		cleanupOperation = processor.onOperation((op) => {
-			operationEmissions.push(structuredClone(op));
+		cleanupOperation = processor.onOperation((event) => {
+			operationEmissions.push(structuredClone(event.operation));
 			return () => {};
 		});
 
-		cleanupStatus = processor.onOperationStatus((op) => {
-			statusEmissions.push(structuredClone(op));
+		cleanupStatus = processor.onOperationStatus((event) => {
+			statusEmissions.push(structuredClone(event.operation));
 			return () => {};
 		});
 	});
@@ -69,10 +69,10 @@ describe('Event Types', () => {
 				from: tx1.from,
 				nonce: 5,
 			});
-			const op = createOperation({id: 'dual-emit', transactions: [tx1]});
+			const op = createOperation({transactions: [tx1]});
 
 			controller.addToMempool(mockTx1);
-			processor.add([op]);
+			processor.add({'dual-emit': op});
 
 			// First process: BeingFetched -> Broadcasted (status change)
 			await processor.process();
@@ -116,13 +116,12 @@ describe('Event Types', () => {
 			});
 
 			const op = createOperation({
-				id: 'multi-tx-event',
 				transactions: [tx1, tx2],
 			});
 
 			controller.addToMempool(mockTx1);
 			controller.addToMempool(mockTx2);
-			processor.add([op]);
+			processor.add({'multi-tx-event': op});
 
 			// First process: both become Broadcasted
 			await processor.process();
@@ -172,10 +171,10 @@ describe('Event Types', () => {
 				from: tx1.from,
 				nonce: 5,
 			});
-			const op = createOperation({id: 'no-change', transactions: [tx1]});
+			const op = createOperation({transactions: [tx1]});
 
 			controller.addToMempool(mockTx1);
-			processor.add([op]);
+			processor.add({'no-change': op});
 
 			await processor.process();
 			expect(op.state?.inclusion).toBe('Broadcasted');
@@ -204,10 +203,10 @@ describe('Event Types', () => {
 				from: tx1.from,
 				nonce: 5,
 			});
-			const op = createOperation({id: 'finality-test', transactions: [tx1]});
+			const op = createOperation({transactions: [tx1]});
 
 			controller.addToMempool(mockTx1);
-			processor.add([op]);
+			processor.add({'finality-test': op});
 			await processor.process();
 
 			// Include TX1
@@ -245,10 +244,10 @@ describe('Event Types', () => {
 				from: tx1.from,
 				nonce: 5,
 			});
-			const op = createOperation({id: 'unsub-test', transactions: [tx1]});
+			const op = createOperation({transactions: [tx1]});
 
 			controller.addToMempool(mockTx1);
-			processor.add([op]);
+			processor.add({'unsub-test': op});
 
 			// First process triggers events
 			await processor.process();

@@ -45,8 +45,8 @@ export function createTestSetup(
 	});
 
 	const emissions: OnchainOperation[] = [];
-	const cleanupListener = processor.onOperation((op) => {
-		emissions.push(structuredClone(op));
+	const cleanupListener = processor.onOperation((event) => {
+		emissions.push(structuredClone(event.operation));
 		return () => {};
 	});
 
@@ -58,6 +58,7 @@ export function createTestSetup(
 	};
 }
 
+let counter = 0;
 /**
  * Helper to create and add an operation with a single tx to the processor
  */
@@ -65,7 +66,7 @@ export function addSingleTxOperation(
 	setup: TestSetup,
 	txOverrides: Parameters<typeof createBroadcastedTx>[0] = {},
 	opOverrides: Partial<OnchainOperation> = {},
-): {operation: OnchainOperation; addToMempool: () => void} {
+): {operation: OnchainOperation; operationId: string; addToMempool: () => void} {
 	const tx = createBroadcastedTx(txOverrides);
 	const mockTx = createMockTx({
 		hash: tx.hash,
@@ -78,10 +79,12 @@ export function addSingleTxOperation(
 		transactions: [tx],
 	});
 
-	setup.processor.add([operation]);
+	const operationId = `op-${++counter}`;
+	setup.processor.add({[operationId]: operation});
 
 	return {
 		operation,
+		operationId,
 		addToMempool: () => setup.controller.addToMempool(mockTx),
 	};
 }
@@ -91,6 +94,7 @@ export function addSingleTxOperation(
  */
 export function addReplacementTx(
 	setup: TestSetup,
+	operationId: string,
 	operation: OnchainOperation,
 	txOverrides: Parameters<typeof createBroadcastedTx>[0] = {},
 ): {newTx: ReturnType<typeof createBroadcastedTx>; addToMempool: () => void} {
@@ -101,13 +105,13 @@ export function addReplacementTx(
 		nonce: newTx.nonce ?? 0,
 	});
 
-	// Add the new tx to the operation via processor.add
-	setup.processor.add([
-		{
+	// Add the new tx to the operation via processor.add using the same operation ID
+	setup.processor.add({
+		[operationId]: {
 			...operation,
 			transactions: [newTx],
 		},
-	]);
+	});
 
 	return {
 		newTx,
@@ -219,7 +223,7 @@ export async function runGasBumpScenario(
 	finalEmission: OnchainOperation | undefined;
 }> {
 	// Create initial tx
-	const {operation, addToMempool: addTx1ToMempool} = addSingleTxOperation(
+	const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
 		setup,
 		{
 			nonce,
@@ -234,6 +238,7 @@ export async function runGasBumpScenario(
 	// Create replacement TX2 with higher gas
 	const {newTx: tx2, addToMempool: addTx2ToMempool} = addReplacementTx(
 		setup,
+		operationId,
 		operation,
 		{
 			nonce,
