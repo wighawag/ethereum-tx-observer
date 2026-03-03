@@ -1,7 +1,7 @@
 {
 	"name": "ethereum-tx-observer",
-	"version": "0.1.0",
-	"description": "A lightweight TypeScript library for tracking and monitoring Ethereum transactions throughout their lifecycle with reactive updates",
+	"version": "0.2.0",
+	"description": "A lightweight TypeScript library for tracking and monitoring Ethereum transactions throughout their lifecycle",
 	"keywords": [
 		"ethereum",
 		"transaction",
@@ -42,9 +42,6 @@
 		"src"
 	],
 	"sideEffects": false,
-	"engines": {
-		"node": ">=16.0.0"
-	},
 	"devDependencies": {
 		"@types/lodash-es": "^4.17.12",
 		"as-soon": "^0.1.5",
@@ -55,8 +52,7 @@
 	"dependencies": {
 		"lodash-es": "^4.17.23",
 		"named-logs": "^0.4.1",
-		"radiate": "^0.2.0",
-		"sveltore": "^0.0.2"
+		"radiate": "^0.3.2"
 	},
 	"scripts": {
 		"format": "prettier --write .",

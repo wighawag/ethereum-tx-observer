@@ -15,11 +15,8 @@ importers:
         specifier: ^0.4.1
         version: 0.4.1
       radiate:
-        specifier: ^0.2.0
-        version: 0.2.0
-      sveltore:
-        specifier: ^0.0.2
-        version: 0.0.2
+        specifier: ^0.3.2
+        version: 0.3.2
     devDependencies:
       '@types/lodash-es':
         specifier: ^4.17.12
@@ -176,11 +173,8 @@ packages:
     engines: {node: '>=14'}
     hasBin: true
 
-  radiate@0.2.0:
-    resolution: {integrity: sha512-shFd7JCodj79FRMonuVU9ZSQ7AvzRhxZprGu3MQ7Cb5WM+rz3AhEkMitiFZI+YyxdYb9mi+Uum2wb+srxaeW7Q==}
-
-  sveltore@0.0.2:
-    resolution: {integrity: sha512-MqUEo9y7Mh4qy5sNEF05+t7sxhGHYa5dv25+xZSulxFMHFlAYUIPAVXp3Eeu6XtpdV0w6P3izmzgwJf07+3UOw==}
+  radiate@0.3.2:
+    resolution: {integrity: sha512-ANuZKiFcx4SNqgtxTazLcoPQK1Dr+ET0focgAJFZiLIukUt/k9AK+FgeUzEHmyUl18A4+S4Jt1GcoYuGHg9nwg==}
 
   typescript@5.9.3:
     resolution: {integrity: sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw==}
@@ -290,8 +284,6 @@ snapshots:
 
   prettier@3.8.1: {}
 
-  radiate@0.2.0: {}
-
-  sveltore@0.0.2: {}
+  radiate@0.3.2: {}
 
   typescript@5.9.3: {}
