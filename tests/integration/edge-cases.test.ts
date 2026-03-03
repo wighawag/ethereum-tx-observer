@@ -56,20 +56,11 @@ describe('Edge Cases for Full Coverage', () => {
 			// Add an operation
 			const operation: OnchainOperation = {
 				id: 'test-op',
-				inclusion: 'BeingFetched',
-				final: undefined,
-				status: undefined,
-				txIndex: undefined,
 				transactions: [
 					{
 						hash: '0x1234567890123456789012345678901234567890123456789012345678901234',
 						from: '0x1234567890123456789012345678901234567890',
 						broadcastTimestamp: Date.now(),
-						maxFeePerGas: '0x1',
-						maxPriorityFeePerGas: '0x1',
-						inclusion: 'BeingFetched',
-						final: undefined,
-						status: undefined,
 					},
 				],
 			};
@@ -79,7 +70,7 @@ describe('Edge Cases for Full Coverage', () => {
 			await processor.process();
 
 			// Operation should remain unchanged
-			expect(operation.inclusion).toBe('BeingFetched');
+			expect(operation.state).toBeUndefined();
 		});
 	});
 
@@ -99,8 +90,8 @@ describe('Edge Cases for Full Coverage', () => {
 			await processAndWait(setup);
 
 			// Verify it's finalized
-			expect(operation.final).toBeDefined();
-			expect(operation.inclusion).toBe('Included');
+			expect(operation.state?.final).toBeDefined();
+			expect(operation.state?.inclusion).toBe('Included');
 
 			const emissionCountBefore = setup.emissions.length;
 
@@ -140,21 +131,12 @@ describe('Edge Cases for Full Coverage', () => {
 
 			const operation: OnchainOperation = {
 				id: 'test-op-retry',
-				inclusion: 'BeingFetched',
-				final: undefined,
-				status: undefined,
-				txIndex: undefined,
 				transactions: [
 					{
 						hash: txHash,
 						from: '0x1111111111111111111111111111111111111111',
 						nonce: 5,
 						broadcastTimestamp: Date.now(),
-						maxFeePerGas: '0x1',
-						maxPriorityFeePerGas: '0x1',
-						inclusion: 'BeingFetched',
-						final: undefined,
-						status: undefined,
 					},
 				],
 			};
@@ -162,7 +144,7 @@ describe('Edge Cases for Full Coverage', () => {
 
 			// First process should find it in mempool
 			await processor.process();
-			expect(operation.inclusion).toBe('Broadcasted');
+			expect(operation.state?.inclusion).toBe('Broadcasted');
 
 			// Now create a scenario where first fetch returns null but second returns the tx
 			let fetchCallCount = 0;
@@ -188,7 +170,7 @@ describe('Edge Cases for Full Coverage', () => {
 			await processor.process();
 
 			// Transaction should still be Broadcasted since retry found it
-			expect(operation.inclusion).toBe('Broadcasted');
+			expect(operation.state?.inclusion).toBe('Broadcasted');
 		});
 	});
 
@@ -282,20 +264,11 @@ describe('Edge Cases for Full Coverage', () => {
 
 			const operation: OnchainOperation = {
 				id: 'test-no-provider',
-				inclusion: 'BeingFetched',
-				final: undefined,
-				status: undefined,
-				txIndex: undefined,
 				transactions: [
 					{
 						hash: '0x1234567890123456789012345678901234567890123456789012345678901234',
 						from: '0x1234567890123456789012345678901234567890',
 						broadcastTimestamp: Date.now(),
-						maxFeePerGas: '0x1',
-						maxPriorityFeePerGas: '0x1',
-						inclusion: 'BeingFetched',
-						final: undefined,
-						status: undefined,
 					},
 				],
 			};
@@ -308,7 +281,7 @@ describe('Edge Cases for Full Coverage', () => {
 			await processor.process();
 
 			// Operation should remain unchanged
-			expect(operation.inclusion).toBe('BeingFetched');
+			expect(operation.state).toBeUndefined();
 		});
 	});
 
@@ -359,20 +332,11 @@ describe('Edge Cases for Full Coverage', () => {
 			// Add an operation
 			const operation: OnchainOperation = {
 				id: 'test-op-null-latest',
-				inclusion: 'BeingFetched',
-				final: undefined,
-				status: undefined,
-				txIndex: undefined,
 				transactions: [
 					{
 						hash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
 						from: '0x1234567890123456789012345678901234567890',
 						broadcastTimestamp: Date.now(),
-						maxFeePerGas: '0x1',
-						maxPriorityFeePerGas: '0x1',
-						inclusion: 'BeingFetched',
-						final: undefined,
-						status: undefined,
 					},
 				],
 			};
@@ -382,7 +346,7 @@ describe('Edge Cases for Full Coverage', () => {
 			await processor.process();
 
 			// Operation should remain unchanged
-			expect(operation.inclusion).toBe('BeingFetched');
+			expect(operation.state).toBeUndefined();
 		});
 	});
 
@@ -403,30 +367,21 @@ describe('Edge Cases for Full Coverage', () => {
 			// Create an operation with two txs: one NotFound and one BeingFetched
 			const operation: OnchainOperation = {
 				id: 'test-op-being-fetched',
-				inclusion: 'BeingFetched',
-				final: undefined,
-				status: undefined,
-				txIndex: undefined,
 				transactions: [
 					{
 						hash: '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
 						from: '0x1234567890123456789012345678901234567890',
 						broadcastTimestamp: Date.now(),
-						maxFeePerGas: '0x1',
-						maxPriorityFeePerGas: '0x1',
-						inclusion: 'NotFound',
-						final: undefined,
-						status: undefined,
+						state: {
+							inclusion: 'NotFound',
+							final: undefined,
+							status: undefined,
+						},
 					},
 					{
 						hash: '0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc',
 						from: '0x1234567890123456789012345678901234567890',
 						broadcastTimestamp: Date.now(),
-						maxFeePerGas: '0x1',
-						maxPriorityFeePerGas: '0x1',
-						inclusion: 'BeingFetched',
-						final: undefined,
-						status: undefined,
 					},
 				],
 			};
@@ -478,7 +433,7 @@ describe('Edge Cases for Full Coverage', () => {
 			// The operation status should reflect that we still have a tx that wasn't fully processed
 			// Since the retry found the tx, it was skipped and didn't change state
 			// First tx went to NotFound, second tx was skipped (still BeingFetched concept but technically unchanged)
-			expect(operation.transactions[0].inclusion).toBe('NotFound');
+			expect(operation.transactions[0].state?.inclusion).toBe('NotFound');
 		});
 	});
 });

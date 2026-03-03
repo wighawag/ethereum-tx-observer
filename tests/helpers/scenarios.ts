@@ -1,4 +1,7 @@
-import {initTransactionProcessor, type OnchainOperation} from '../../src/index.js';
+import {
+	initTransactionProcessor,
+	type OnchainOperation,
+} from '../../src/index.js';
 import {
 	createMockProvider,
 	type MockProviderController,
@@ -68,8 +71,6 @@ export function addSingleTxOperation(
 		hash: tx.hash,
 		from: tx.from,
 		nonce: tx.nonce ?? 0,
-		maxFeePerGas: tx.maxFeePerGas,
-		maxPriorityFeePerGas: tx.maxPriorityFeePerGas,
 	});
 
 	const operation = createOperation({
@@ -98,8 +99,6 @@ export function addReplacementTx(
 		hash: newTx.hash,
 		from: newTx.from,
 		nonce: newTx.nonce ?? 0,
-		maxFeePerGas: newTx.maxFeePerGas,
-		maxPriorityFeePerGas: newTx.maxPriorityFeePerGas,
 	});
 
 	// Add the new tx to the operation via processor.add
@@ -224,7 +223,6 @@ export async function runGasBumpScenario(
 		setup,
 		{
 			nonce,
-			maxFeePerGas: '0x3b9aca00', // 1 gwei
 		},
 	);
 	const tx1Hash = operation.transactions[0].hash;
@@ -240,7 +238,6 @@ export async function runGasBumpScenario(
 		{
 			nonce,
 			from: operation.transactions[0].from,
-			maxFeePerGas: '0x77359400', // 2 gwei
 		},
 	);
 	const tx2Hash = tx2.hash;

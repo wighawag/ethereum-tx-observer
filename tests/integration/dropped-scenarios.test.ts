@@ -185,9 +185,9 @@ describe('Dropped Transaction Scenarios', () => {
 
 			// Should be dropped with final timestamp
 			assertOperationDropped(operation);
-			expect(operation.final).toBeDefined();
+			expect(operation.state?.final).toBeDefined();
 			// Final should be the broadcast timestamp (from the tx)
-			expect(operation.final).toBe(broadcastTimestamp);
+			expect(operation.state?.final).toBe(broadcastTimestamp);
 		});
 	});
 
@@ -211,7 +211,7 @@ describe('Dropped Transaction Scenarios', () => {
 
 			// Should be NotFound, not Dropped
 			assertOperationInclusion(operation, 'NotFound');
-			expect(operation.final).toBeUndefined();
+			expect(operation.state?.final).toBeUndefined();
 		});
 
 		it('notfound-to-dropped: Tx not found, then nonce consumed', async () => {

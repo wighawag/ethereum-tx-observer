@@ -58,12 +58,12 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 			const tx2 = createBroadcastedTx({
 				nonce: 5,
 				from: TEST_ACCOUNT,
-				maxFeePerGas: '0x77359400', // Higher gas
 			});
 			const mockTx2 = createMockTx({
 				hash: tx2.hash,
 				from: tx2.from,
 				nonce: 5,
+				maxFeePerGas: '0x77359400', // Higher gas
 			});
 			setup.controller.addToMempool(mockTx2);
 			setup.processor.add([{...op, transactions: [tx2]}]);
@@ -143,12 +143,12 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 			const tx2 = createBroadcastedTx({
 				nonce: 5,
 				from: TEST_ACCOUNT,
-				maxFeePerGas: '0x77359400',
 			});
 			const mockTx2 = createMockTx({
 				hash: tx2.hash,
 				from: tx2.from,
 				nonce: 5,
+				maxFeePerGas: '0x77359400',
 			});
 			setup.controller.addToMempool(mockTx2);
 			setup.processor.add([{...operation, transactions: [tx2]}]);
@@ -187,10 +187,6 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 				{
 					id: 'shared-id',
 					transactions: [tx2],
-					inclusion: 'BeingFetched',
-					final: undefined,
-					status: undefined,
-					txIndex: undefined,
 				},
 			]);
 
@@ -325,7 +321,10 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 				from: tx1.from,
 				nonce: 5,
 			});
-			const savedOp = createOperation({id: 'state-handler-op', transactions: [tx1]});
+			const savedOp = createOperation({
+				id: 'state-handler-op',
+				transactions: [tx1],
+			});
 			// Simulate: localStorage.setItem('ops', JSON.stringify([savedOp]));
 
 			// Step 2: Add to processor
@@ -338,12 +337,12 @@ describe('Concurrent Add Tests - Consistency with Local State Handler', () => {
 			const tx2 = createBroadcastedTx({
 				nonce: 5,
 				from: TEST_ACCOUNT,
-				maxFeePerGas: '0x77359400',
 			});
 			const mockTx2 = createMockTx({
 				hash: tx2.hash,
 				from: tx2.from,
 				nonce: 5,
+				maxFeePerGas: '0x77359400',
 			});
 
 			// Simulate: savedOp.transactions.push(tx2);

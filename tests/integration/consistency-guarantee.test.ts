@@ -16,7 +16,10 @@
  */
 
 import {describe, it, expect, beforeEach, afterEach} from 'vitest';
-import {initTransactionProcessor, type OnchainOperation} from '../../src/index.js';
+import {
+	initTransactionProcessor,
+	type OnchainOperation,
+} from '../../src/index.js';
 import {
 	createMockProvider,
 	type MockProviderController,
@@ -88,18 +91,18 @@ describe('Consistency Guarantee with Local State Handler', () => {
 
 			// First process to establish TX1 as Broadcasted
 			await processor.process();
-			expect(op.inclusion).toBe('Broadcasted');
+			expect(op.state?.inclusion).toBe('Broadcasted');
 
 			// Create TX2
 			const tx2 = createBroadcastedTx({
 				nonce: 5,
 				from: TEST_ACCOUNT,
-				maxFeePerGas: '0x77359400',
 			});
 			const mockTx2 = createMockTx({
 				hash: tx2.hash,
 				from: tx2.from,
 				nonce: 5,
+				maxFeePerGas: '0x77359400',
 			});
 
 			// Set up a hook to inject TX2 during the processing of TX1
@@ -131,7 +134,7 @@ describe('Consistency Guarantee with Local State Handler', () => {
 
 			// Get the latest emission after TX1 was included
 			const includedEmission = emissions.find(
-				(e) => e.id === 'consistency-test' && e.inclusion === 'Included',
+				(e) => e.id === 'consistency-test' && e.state?.inclusion === 'Included',
 			);
 
 			expect(includedEmission).toBeDefined();
@@ -177,7 +180,7 @@ describe('Consistency Guarantee with Local State Handler', () => {
 			controller.addToMempool(mockTx1);
 			processor.add([op]);
 			await processor.process();
-			expect(op.inclusion).toBe('Broadcasted');
+			expect(op.state?.inclusion).toBe('Broadcasted');
 
 			const emissionCountBefore = emissions.length;
 
@@ -337,9 +340,9 @@ describe('Consistency Guarantee with Local State Handler', () => {
 			await processor.process();
 
 			// Both should be Broadcasted
-			expect(op.transactions[0].inclusion).toBe('Broadcasted');
-			expect(op.transactions[1].inclusion).toBe('Broadcasted');
-			expect(op.inclusion).toBe('Broadcasted');
+			expect(op.transactions[0].state?.inclusion).toBe('Broadcasted');
+			expect(op.transactions[1].state?.inclusion).toBe('Broadcasted');
+			expect(op.state?.inclusion).toBe('Broadcasted');
 		});
 
 		it('should correctly compute merged status with multiple TXs', async () => {
@@ -377,9 +380,9 @@ describe('Consistency Guarantee with Local State Handler', () => {
 			await processor.process();
 
 			// Operation should be Included (TX1 succeeded)
-			expect(op.inclusion).toBe('Included');
-			expect(op.status).toBe('Success');
-			expect(op.txIndex).toBe(0); // TX1
+			expect(op.state?.inclusion).toBe('Included');
+			expect(op.state?.status).toBe('Success');
+			expect(op.state?.txIndex).toBe(0); // TX1
 		});
 	});
 });

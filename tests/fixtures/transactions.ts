@@ -2,7 +2,8 @@ import type {BroadcastedTransaction} from '../../src/index.js';
 import type {MockTransaction} from '../mocks/MockEIP1193Provider.js';
 
 // Default test account
-export const TEST_ACCOUNT = '0x1234567890123456789012345678901234567890' as const;
+export const TEST_ACCOUNT =
+	'0x1234567890123456789012345678901234567890' as const;
 export const TEST_ACCOUNT_2 =
 	'0xabcdef1234567890123456789012345678901234' as const;
 
@@ -38,11 +39,7 @@ export function createBroadcastedTx(
 		from,
 		nonce: overrides.nonce,
 		broadcastTimestamp: overrides.broadcastTimestamp || Date.now(),
-		maxFeePerGas: overrides.maxFeePerGas || '0x3b9aca00',
-		maxPriorityFeePerGas: overrides.maxPriorityFeePerGas || '0x3b9aca00',
-		inclusion: overrides.inclusion || 'BeingFetched',
-		final: overrides.final,
-		status: overrides.status,
+		state: overrides.state,
 	} as BroadcastedTransaction;
 }
 
@@ -111,8 +108,7 @@ export function createReplacementTxPair(
 
 	// Higher gas for replacement
 	const maxFeePerGas = overrides.maxFeePerGas || '0x77359400'; // 2 gwei (higher than default 1 gwei)
-	const maxPriorityFeePerGas =
-		overrides.maxPriorityFeePerGas || '0x77359400';
+	const maxPriorityFeePerGas = overrides.maxPriorityFeePerGas || '0x77359400';
 
 	return createTxPair({
 		...overrides,

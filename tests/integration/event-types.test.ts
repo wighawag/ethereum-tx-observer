@@ -5,7 +5,10 @@
  */
 
 import {describe, it, expect, beforeEach, afterEach} from 'vitest';
-import {initTransactionProcessor, type OnchainOperation} from '../../src/index.js';
+import {
+	initTransactionProcessor,
+	type OnchainOperation,
+} from '../../src/index.js';
 import {
 	createMockProvider,
 	type MockProviderController,
@@ -78,8 +81,8 @@ describe('Event Types', () => {
 			expect(operationEmissions.length).toBe(1);
 			expect(statusEmissions.length).toBe(1);
 
-			expect(operationEmissions[0].inclusion).toBe('Broadcasted');
-			expect(statusEmissions[0].inclusion).toBe('Broadcasted');
+			expect(operationEmissions[0].state?.inclusion).toBe('Broadcasted');
+			expect(statusEmissions[0].state?.inclusion).toBe('Broadcasted');
 		});
 
 		it('should emit operation but NOT operation:status when only TX changes without status change', async () => {
@@ -123,7 +126,7 @@ describe('Event Types', () => {
 
 			// First process: both become Broadcasted
 			await processor.process();
-			expect(op.inclusion).toBe('Broadcasted');
+			expect(op.state?.inclusion).toBe('Broadcasted');
 
 			const opCountAfterBroadcast = operationEmissions.length;
 			const statusCountAfterBroadcast = statusEmissions.length;
@@ -133,8 +136,8 @@ describe('Event Types', () => {
 			controller.setAccountNonce(TEST_ACCOUNT, 6);
 			await processor.process();
 
-			expect(op.inclusion).toBe('Included');
-			expect(op.txIndex).toBe(0); // TX1
+			expect(op.state?.inclusion).toBe('Included');
+			expect(op.state?.txIndex).toBe(0); // TX1
 
 			const opCountAfterTx1Include = operationEmissions.length;
 			const statusCountAfterTx1Include = statusEmissions.length;
@@ -151,7 +154,7 @@ describe('Event Types', () => {
 			await processor.process();
 
 			// TX2 should now be Included
-			expect(op.transactions[1].inclusion).toBe('Included');
+			expect(op.transactions[1].state?.inclusion).toBe('Included');
 
 			// 'operation' event should fire (TX2 changed)
 			expect(operationEmissions.length).toBeGreaterThan(opCountAfterTx1Include);
@@ -175,7 +178,7 @@ describe('Event Types', () => {
 			processor.add([op]);
 
 			await processor.process();
-			expect(op.inclusion).toBe('Broadcasted');
+			expect(op.state?.inclusion).toBe('Broadcasted');
 
 			const opCountBefore = operationEmissions.length;
 			const statusCountBefore = statusEmissions.length;
@@ -212,8 +215,8 @@ describe('Event Types', () => {
 			controller.setAccountNonce(TEST_ACCOUNT, 6);
 			await processor.process();
 
-			expect(op.inclusion).toBe('Included');
-			expect(op.transactions[0].final).toBeUndefined(); // Not final yet
+			expect(op.state?.inclusion).toBe('Included');
+			expect(op.transactions[0].state?.final).toBeUndefined(); // Not final yet
 
 			const opCountBefore = operationEmissions.length;
 			const statusCountBefore = statusEmissions.length;
@@ -224,7 +227,7 @@ describe('Event Types', () => {
 			await processor.process();
 
 			// TX should now be final
-			expect(op.transactions[0].final).toBeDefined();
+			expect(op.transactions[0].state?.final).toBeDefined();
 
 			// 'operation' event should fire (TX finality changed)
 			expect(operationEmissions.length).toBeGreaterThan(opCountBefore);

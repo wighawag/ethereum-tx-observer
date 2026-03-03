@@ -33,7 +33,7 @@ describe('Single Transaction Lifecycle', () => {
 			const {operation, addToMempool} = addSingleTxOperation(setup, {nonce: 5});
 
 			// Initial state
-			expect(operation.inclusion).toBe('BeingFetched');
+			expect(operation.state).toBeUndefined();
 
 			// Process before adding to mempool - should be NotFound
 			await processAndWait(setup);
@@ -73,7 +73,7 @@ describe('Single Transaction Lifecycle', () => {
 			await processAndWait(setup);
 
 			// Not finalized yet
-			expect(operation.final).toBeUndefined();
+			expect(operation.state?.final).toBeUndefined();
 
 			// Advance blocks to finality
 			setup.controller.advanceBlocks(12);
@@ -101,10 +101,10 @@ describe('Single Transaction Lifecycle', () => {
 			const {phases} = await runBasicLifecycleScenario(setup, 5);
 
 			// Verify each phase
-			expect(phases.added?.inclusion).toBe('NotFound'); // Not in mempool yet
-			expect(phases.broadcasted?.inclusion).toBe('Broadcasted');
-			expect(phases.included?.inclusion).toBe('Included');
-			expect(phases.finalized?.final).toBeDefined();
+			expect(phases.added?.state?.inclusion).toBe('NotFound'); // Not in mempool yet
+			expect(phases.broadcasted?.state?.inclusion).toBe('Broadcasted');
+			expect(phases.included?.state?.inclusion).toBe('Included');
+			expect(phases.finalized?.state?.final).toBeDefined();
 		});
 	});
 
@@ -117,25 +117,25 @@ describe('Single Transaction Lifecycle', () => {
 			await processAndWait(setup);
 			expect(setup.emissions.length).toBeGreaterThan(0);
 			const notFoundEmission = setup.emissions[setup.emissions.length - 1];
-			expect(notFoundEmission.inclusion).toBe('NotFound');
+			expect(notFoundEmission.state?.inclusion).toBe('NotFound');
 
 			// Broadcasted
 			addToMempool();
 			await processAndWait(setup);
 			const broadcastedEmission = setup.emissions[setup.emissions.length - 1];
-			expect(broadcastedEmission.inclusion).toBe('Broadcasted');
+			expect(broadcastedEmission.state?.inclusion).toBe('Broadcasted');
 
 			// Included
 			setup.controller.includeTx(txHash, 'success');
 			await processAndWait(setup);
 			const includedEmission = setup.emissions[setup.emissions.length - 1];
-			expect(includedEmission.inclusion).toBe('Included');
+			expect(includedEmission.state?.inclusion).toBe('Included');
 
 			// Finalized
 			setup.controller.advanceBlocks(12);
 			await processAndWait(setup);
 			const finalizedEmission = setup.emissions[setup.emissions.length - 1];
-			expect(finalizedEmission.final).toBeDefined();
+			expect(finalizedEmission.state?.final).toBeDefined();
 		});
 
 		it('should not emit duplicate events for unchanged status', async () => {
@@ -168,7 +168,7 @@ describe('Single Transaction Lifecycle', () => {
 			expect(emission.id).toBe(operation.id);
 			expect(emission.transactions).toHaveLength(1);
 			expect(emission.transactions[0].hash).toBe(txHash);
-			expect(emission.inclusion).toBe('Broadcasted');
+			expect(emission.state?.inclusion).toBe('Broadcasted');
 		});
 	});
 
@@ -245,7 +245,7 @@ describe('Single Transaction Lifecycle', () => {
 			await processAndWait(setup);
 
 			// Should still not be finalized
-			expect(operation.final).toBeUndefined();
+			expect(operation.state?.final).toBeUndefined();
 		});
 
 		it('should finalize tx exactly at finality threshold', async () => {

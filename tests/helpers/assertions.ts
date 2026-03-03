@@ -13,7 +13,7 @@ export function assertOperationInclusion(
 	expectedInclusion: BroadcastedTransactionInclusion,
 	message?: string,
 ): void {
-	expect(op.inclusion, message).toBe(expectedInclusion);
+	expect(op.state?.inclusion, message).toBe(expectedInclusion);
 }
 
 /**
@@ -24,9 +24,9 @@ export function assertOperationIncluded(
 	expectedStatus: 'Success' | 'Failure',
 	message?: string,
 ): void {
-	expect(op.inclusion, message).toBe('Included');
-	expect(op.status, message).toBe(expectedStatus);
-	expect(typeof op.txIndex, message).toBe('number');
+	expect(op.state?.inclusion, message).toBe('Included');
+	expect(op.state?.status, message).toBe(expectedStatus);
+	expect(typeof op.state?.txIndex, message).toBe('number');
 }
 
 /**
@@ -36,8 +36,8 @@ export function assertOperationFinalized(
 	op: OnchainOperation,
 	message?: string,
 ): void {
-	expect(op.final, message).toBeDefined();
-	expect(typeof op.final, message).toBe('number');
+	expect(op.state?.final, message).toBeDefined();
+	expect(typeof op.state?.final, message).toBe('number');
 }
 
 /**
@@ -47,7 +47,7 @@ export function assertOperationDropped(
 	op: OnchainOperation,
 	message?: string,
 ): void {
-	expect(op.inclusion, message).toBe('Dropped');
+	expect(op.state?.inclusion, message).toBe('Dropped');
 }
 
 /**
@@ -58,7 +58,7 @@ export function assertTxInclusion(
 	expectedInclusion: BroadcastedTransactionInclusion,
 	message?: string,
 ): void {
-	expect(tx.inclusion, message).toBe(expectedInclusion);
+	expect(tx.state?.inclusion, message).toBe(expectedInclusion);
 }
 
 /**
@@ -95,8 +95,8 @@ export function assertWinningTx(
 	expectedHash: `0x${string}`,
 	message?: string,
 ): void {
-	expect(op.txIndex, 'txIndex should be defined').toBeDefined();
-	const winningTx = op.transactions[op.txIndex!];
+	expect(op.state?.txIndex, 'txIndex should be defined').toBeDefined();
+	const winningTx = op.transactions[op.state?.txIndex!];
 	expect(
 		winningTx.hash,
 		message || `Winning tx should be ${expectedHash}`,
@@ -113,7 +113,7 @@ export function assertAllTxsInclusion(
 ): void {
 	for (const tx of op.transactions) {
 		expect(
-			tx.inclusion,
+			tx.state?.inclusion,
 			message || `All txs should be ${expectedInclusion}`,
 		).toBe(expectedInclusion);
 	}
@@ -128,7 +128,7 @@ export function assertSomeTxInclusion(
 	message?: string,
 ): void {
 	const found = op.transactions.some(
-		(tx) => tx.inclusion === expectedInclusion,
+		(tx) => tx.state?.inclusion === expectedInclusion,
 	);
 	expect(
 		found,
@@ -151,7 +151,7 @@ export function assertEmissionSequence(
 
 	for (let i = 0; i < expectedSequence.length; i++) {
 		expect(
-			emissions[i].inclusion,
+			emissions[i].state?.inclusion,
 			message || `Emission ${i} should be ${expectedSequence[i]}`,
 		).toBe(expectedSequence[i]);
 	}
@@ -202,19 +202,22 @@ export function assertOperationStatus(
 	},
 	message?: string,
 ): void {
-	expect(op.inclusion, message).toBe(expected.inclusion);
+	expect(op.state?.inclusion, message).toBe(expected.inclusion);
 
 	if (expected.status !== undefined) {
-		expect(op.status, message).toBe(expected.status);
+		expect(op.state?.status, message).toBe(expected.status);
 	}
 
 	if (expected.final !== undefined) {
-		expect(op.final, message).toBe(expected.final);
-	} else if (expected.inclusion === 'BeingFetched' || expected.inclusion === 'Broadcasted' || expected.inclusion === 'NotFound') {
-		expect(op.final, message).toBeUndefined();
+		expect(op.state?.final, message).toBe(expected.final);
+	} else if (
+		expected.inclusion === 'Broadcasted' ||
+		expected.inclusion === 'NotFound'
+	) {
+		expect(op.state?.final, message).toBeUndefined();
 	}
 
 	if (expected.txIndex !== undefined) {
-		expect(op.txIndex, message).toBe(expected.txIndex);
+		expect(op.state?.txIndex, message).toBe(expected.txIndex);
 	}
 }

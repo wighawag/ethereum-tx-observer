@@ -1,20 +1,28 @@
-import type {EIP1193Provider, EIP1193Block} from 'eip-1193';
+import type {
+	EIP1193Provider,
+	EIP1193Block,
+	EIP1193ProviderWithoutEvents,
+} from 'eip-1193';
 import {logs} from 'named-logs';
 // TODO // import {throttle} from 'lodash-es';
 import {Emitter} from 'radiate';
 const logger = logs('tx-observer');
 
 export type BroadcastedTransactionInclusion =
-	| 'BeingFetched'
 	| 'Broadcasted'
 	| 'NotFound'
 	| 'Dropped'
 	| 'Included';
 
-export type BroadcastedTransactionStatus =
+export type BroadcastedTransactionState =
 	| {
-			inclusion: 'BeingFetched' | 'Broadcasted' | 'NotFound' | 'Dropped';
+			inclusion: 'Broadcasted' | 'NotFound';
 			final: undefined;
+			status: undefined;
+	  }
+	| {
+			inclusion: 'Dropped';
+			final?: number;
 			status: undefined;
 	  }
 	| {
@@ -28,18 +36,17 @@ export type BroadcastedTransaction = {
 	readonly from: `0x${string}`;
 	nonce?: number;
 	readonly broadcastTimestamp: number;
-	readonly maxFeePerGas: string;
-	readonly maxPriorityFeePerGas: string;
-} & BroadcastedTransactionStatus;
+	state?: BroadcastedTransactionState;
+};
 
 /**
  * Operation status represents the merged status of all transactions in an operation.
  * - txIndex: index into transactions[] for the "winning" tx (first success, or first failure if all failed)
  * - The hash can be retrieved via: operation.transactions[operation.txIndex].hash
  */
-export type OperationStatus =
+export type OnchainOperationStatus =
 	| {
-			inclusion: 'BeingFetched' | 'Broadcasted' | 'NotFound';
+			inclusion: 'Broadcasted' | 'NotFound';
 			final: undefined;
 			status: undefined;
 			txIndex: undefined;
@@ -57,21 +64,20 @@ export type OperationStatus =
 			txIndex: number;
 	  };
 
-export type OnchainOperation<Metadata extends unknown = unknown> =
-	OperationStatus & {
-		id: string;
-		transactions: BroadcastedTransaction[];
-		metadata?: Metadata;
+export type OnchainOperation = {
+	id: string;
+	transactions: BroadcastedTransaction[];
+	state?: OnchainOperationStatus;
 
-		// TODO, use these to detect out of band inclusion
-		expectedUpdate?:
-			| {
-					event: {topics: `0x${string}`[]};
-			  }
-			| {
-					functionCall: {name: string; result: `0x${string}`};
-			  };
-	};
+	// TODO, use these to detect out of band inclusion
+	expectedUpdate?:
+		| {
+				event: {topics: `0x${string}`[]};
+		  }
+		| {
+				functionCall: {name: string; result: `0x${string}`};
+		  };
+};
 
 /**
  * Compute the merged operation status from all its transactions.
@@ -79,7 +85,6 @@ export type OnchainOperation<Metadata extends unknown = unknown> =
  * Priority order (highest wins):
  * 1. Included - At least one tx is included in a block
  * 2. Broadcasted - At least one tx is active in mempool
- * 3. BeingFetched - Still determining status
  * 4. NotFound - None visible in mempool
  * 5. Dropped - ALL txs are dropped (operation failed)
  *
@@ -88,7 +93,7 @@ export type OnchainOperation<Metadata extends unknown = unknown> =
  * - If ALL included txs failed → status: Failure
  * - txIndex points to first success, or first failure if all failed
  */
-function computeOperationStatus(op: OnchainOperation): OperationStatus {
+function computeOperationStatus(op: OnchainOperation): OnchainOperationStatus {
 	const txs = op.transactions;
 
 	// Check for any Included txs - find index of first success, or first failure
@@ -97,8 +102,8 @@ function computeOperationStatus(op: OnchainOperation): OperationStatus {
 
 	for (let i = 0; i < txs.length; i++) {
 		const tx = txs[i];
-		if (tx.inclusion === 'Included') {
-			if (tx.status === 'Success') {
+		if (tx.state?.inclusion === 'Included') {
+			if (tx.state.status === 'Success') {
 				winningIndex = i;
 				hasSuccess = true;
 				break; // First success wins
@@ -110,12 +115,12 @@ function computeOperationStatus(op: OnchainOperation): OperationStatus {
 
 	if (winningIndex >= 0) {
 		// Determine finality - use the most final timestamp from included txs
-		const includedTxs = txs.filter((tx) => tx.inclusion === 'Included');
+		const includedTxs = txs.filter((tx) => tx.state?.inclusion === 'Included');
 		let finalTimestamp: number | undefined;
 		for (const tx of includedTxs) {
-			if (tx.final !== undefined) {
-				if (finalTimestamp === undefined || tx.final > finalTimestamp) {
-					finalTimestamp = tx.final;
+			if (tx.state?.final !== undefined) {
+				if (finalTimestamp === undefined || tx.state.final > finalTimestamp) {
+					finalTimestamp = tx.state.final;
 				}
 			}
 		}
@@ -129,7 +134,7 @@ function computeOperationStatus(op: OnchainOperation): OperationStatus {
 	}
 
 	// Check for any Broadcasted
-	if (txs.some((tx) => tx.inclusion === 'Broadcasted')) {
+	if (txs.some((tx) => tx.state?.inclusion === 'Broadcasted')) {
 		return {
 			inclusion: 'Broadcasted',
 			final: undefined,
@@ -138,18 +143,8 @@ function computeOperationStatus(op: OnchainOperation): OperationStatus {
 		};
 	}
 
-	// Check for any BeingFetched
-	if (txs.some((tx) => tx.inclusion === 'BeingFetched')) {
-		return {
-			inclusion: 'BeingFetched',
-			final: undefined,
-			status: undefined,
-			txIndex: undefined,
-		};
-	}
-
 	// Check for any NotFound
-	if (txs.some((tx) => tx.inclusion === 'NotFound')) {
+	if (txs.some((tx) => tx.state?.inclusion === 'NotFound')) {
 		return {
 			inclusion: 'NotFound',
 			final: undefined,
@@ -161,9 +156,9 @@ function computeOperationStatus(op: OnchainOperation): OperationStatus {
 	// All must be Dropped - find earliest dropped timestamp
 	let droppedTimestamp: number | undefined;
 	for (const tx of txs) {
-		if (tx.final !== undefined) {
-			if (droppedTimestamp === undefined || tx.final < droppedTimestamp) {
-				droppedTimestamp = tx.final;
+		if (tx.state?.final !== undefined) {
+			if (droppedTimestamp === undefined || tx.state.final < droppedTimestamp) {
+				droppedTimestamp = tx.state.final;
 			}
 		}
 	}
@@ -182,12 +177,15 @@ function computeOperationStatus(op: OnchainOperation): OperationStatus {
  */
 function applyOperationStatus(
 	op: OnchainOperation,
-	newStatus: OperationStatus,
+	newState: OnchainOperationStatus,
 ): void {
-	(op as any).inclusion = newStatus.inclusion;
-	(op as any).final = newStatus.final;
-	(op as any).status = newStatus.status;
-	(op as any).txIndex = newStatus.txIndex;
+	if (!op.state) {
+		op.state = newState;
+	}
+	op.state.inclusion = newState.inclusion;
+	op.state.final = newState.final;
+	op.state.status = newState.status;
+	op.state.txIndex = newState.txIndex;
 }
 
 /**
@@ -195,19 +193,22 @@ function applyOperationStatus(
  */
 function hasOperationStatusChanged(
 	op: OnchainOperation,
-	newStatus: OperationStatus,
+	newStatus: OnchainOperationStatus,
 ): boolean {
+	if (!op.state) {
+		return true;
+	}
 	return (
-		op.inclusion !== newStatus.inclusion ||
-		op.final !== newStatus.final ||
-		op.status !== newStatus.status ||
-		op.txIndex !== newStatus.txIndex
+		op.state.inclusion !== newStatus.inclusion ||
+		op.state.final !== newStatus.final ||
+		op.state.status !== newStatus.status ||
+		op.state.txIndex !== newStatus.txIndex
 	);
 }
 
 export function initTransactionProcessor(config: {
 	finality: number;
-	provider?: EIP1193Provider;
+	provider?: EIP1193ProviderWithoutEvents;
 }) {
 	const emitter = new Emitter<{
 		// Fires when any TX in the operation changes (for persistence)
@@ -216,7 +217,7 @@ export function initTransactionProcessor(config: {
 		'operation:status': OnchainOperation;
 	}>();
 
-	let provider: EIP1193Provider | undefined = config.provider;
+	let provider: EIP1193ProviderWithoutEvents | undefined = config.provider;
 	const $ops: OnchainOperation[] = [];
 	const opsById: {[id: string]: OnchainOperation} = {};
 	// Maintain tx hash lookup for efficient updates
@@ -420,8 +421,8 @@ export function initTransactionProcessor(config: {
 		}
 		/* v8 ignore stop */
 
-		if (tx.inclusion === 'Included') {
-			if (tx.final) {
+		if (tx.state && tx.state.inclusion === 'Included') {
+			if (tx.state.final) {
 				// TODO auto remove ?
 				return false;
 			}
@@ -447,33 +448,64 @@ export function initTransactionProcessor(config: {
 					params: [txFromPeers.blockHash, false],
 				});
 				if (block) {
-					if (tx.inclusion !== 'Included') {
-						// we change type here
-						(tx as any).inclusion = 'Included';
-						changes = true;
-					}
 					const blockNumber = Number(block.number);
 					const blockTimestamp = Number(block.timestamp);
 					const is_final = latestBlockNumber - blockNumber >= config.finality;
 					if (receipt.status === '0x0' || receipt.status === '0x00') {
-						if (tx.status !== 'Failure' || tx.final !== blockTimestamp) {
-							tx.status = 'Failure';
-							tx.final = is_final ? blockTimestamp : undefined;
+						if (tx.state) {
+							if (
+								tx.state.status !== 'Failure' ||
+								tx.state.final !== blockTimestamp
+							) {
+								tx.state.inclusion = 'Included';
+								tx.state.status = 'Failure';
+								tx.state.final = is_final ? blockTimestamp : undefined;
+								changes = true;
+							}
+						} else {
+							tx.state = {
+								inclusion: 'Included',
+								status: 'Failure',
+								final: is_final ? blockTimestamp : undefined,
+							};
 							changes = true;
 						}
 					} else {
-						if (tx.status !== 'Success' || tx.final !== blockTimestamp) {
-							tx.status = 'Success';
-							tx.final = is_final ? blockTimestamp : undefined;
+						if (tx.state) {
+							if (
+								tx.state.status !== 'Success' ||
+								tx.state.final !== blockTimestamp
+							) {
+								tx.state.inclusion = 'Included';
+								tx.state.status = 'Success';
+								tx.state.final = is_final ? blockTimestamp : undefined;
+								changes = true;
+							}
+						} else {
+							tx.state = {
+								inclusion: 'Included',
+								status: 'Success',
+								final: is_final ? blockTimestamp : undefined,
+							};
 							changes = true;
 						}
 					}
 				}
 			} else {
-				if (tx.inclusion !== 'Broadcasted') {
-					tx.inclusion = 'Broadcasted';
-					tx.final = undefined;
-					tx.status = undefined;
+				if (tx.state) {
+					if (tx.state && tx.state.inclusion !== 'Broadcasted') {
+						tx.state.inclusion = 'Broadcasted';
+						tx.state.final = undefined;
+						tx.state.status = undefined;
+						tx.nonce = Number(txFromPeers.nonce);
+						changes = true;
+					}
+				} else {
+					tx.state = {
+						inclusion: 'Broadcasted',
+						final: undefined,
+						status: undefined,
+					};
 					tx.nonce = Number(txFromPeers.nonce);
 					changes = true;
 				}
@@ -499,20 +531,41 @@ export function initTransactionProcessor(config: {
 			logger.debug(`finalityNonce: ${finalityNonce}`);
 
 			if (typeof tx.nonce === 'number' && finalityNonce > tx.nonce) {
-				if (tx.inclusion !== 'Dropped' || !tx.final) {
-					tx.inclusion = 'Dropped';
-					tx.final =
-						typeof tx.broadcastTimestamp !== undefined
-							? tx.broadcastTimestamp
-							: latestFinalizedBlockTime;
-					tx.status = undefined;
+				if (tx.state) {
+					if (tx.state.inclusion !== 'Dropped' || !tx.state.final) {
+						tx.state.inclusion = 'Dropped';
+						tx.state.final =
+							tx.broadcastTimestamp !== undefined
+								? tx.broadcastTimestamp
+								: latestFinalizedBlockTime;
+						tx.state.status = undefined;
+						changes = true;
+					}
+				} else {
+					tx.state = {
+						inclusion: 'Dropped',
+						status: undefined,
+						final:
+							tx.broadcastTimestamp !== undefined
+								? tx.broadcastTimestamp
+								: latestFinalizedBlockTime,
+					};
 					changes = true;
 				}
 			} else {
-				if (tx.inclusion !== 'NotFound') {
-					tx.inclusion = 'NotFound';
-					tx.final = undefined;
-					tx.status = undefined;
+				if (tx.state) {
+					if (tx.state.inclusion !== 'NotFound') {
+						tx.state.inclusion = 'NotFound';
+						tx.state.final = undefined;
+						tx.state.status = undefined;
+						changes = true;
+					}
+				} else {
+					tx.state = {
+						inclusion: 'NotFound',
+						final: undefined,
+						status: undefined,
+					};
 					changes = true;
 				}
 			}

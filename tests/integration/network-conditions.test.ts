@@ -60,7 +60,7 @@ describe('Network Conditions', () => {
 			await expect(setup.processor.process()).rejects.toThrow();
 
 			// Operation should retain previous state
-			expect(operation.inclusion).toBe('Broadcasted');
+			expect(operation.state?.inclusion).toBe('Broadcasted');
 		});
 
 		it('network-eth-getTransactionReceipt-fails: Receipt fetch fails', async () => {
@@ -80,7 +80,7 @@ describe('Network Conditions', () => {
 			await expect(setup.processor.process()).rejects.toThrow();
 
 			// Operation should stay at Broadcasted (couldn't confirm inclusion)
-			expect(operation.inclusion).toBe('Broadcasted');
+			expect(operation.state?.inclusion).toBe('Broadcasted');
 		});
 
 		it('network-intermittent: Random failures with recovery', async () => {
@@ -180,14 +180,14 @@ describe('Network Conditions', () => {
 			const initialBlockNumber = setup.controller.getBlockNumber();
 
 			// Not finalized yet
-			expect(operation.final).toBeUndefined();
+			expect(operation.state?.final).toBeUndefined();
 
 			// Advance blocks
 			setup.controller.advanceBlocks(12);
 			await processAndWait(setup);
 
 			// Should be finalized
-			expect(operation.final).toBeDefined();
+			expect(operation.state?.final).toBeDefined();
 
 			// Block number should have advanced
 			expect(setup.controller.getBlockNumber()).toBe(initialBlockNumber + 12);
@@ -208,14 +208,14 @@ describe('Network Conditions', () => {
 			// Advance to one before finality
 			setup.controller.advanceBlocks(11);
 			await processAndWait(setup);
-			expect(operation.final).toBeUndefined();
+			expect(operation.state?.final).toBeUndefined();
 
 			// Advance exactly one more block to reach finality
 			setup.controller.advanceBlock();
 			await processAndWait(setup);
 
 			// Should now be finalized
-			expect(operation.final).toBeDefined();
+			expect(operation.state?.final).toBeDefined();
 		});
 	});
 
@@ -279,7 +279,7 @@ describe('Network Conditions', () => {
 
 			// Should not have duplicate emissions for same state
 			const broadcastedEmissions = setup.emissions.filter(
-				(e) => e.inclusion === 'Broadcasted',
+				(e) => e.state?.inclusion === 'Broadcasted',
 			);
 
 			// All emissions after the first should be deduped

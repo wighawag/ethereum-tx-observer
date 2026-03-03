@@ -39,7 +39,6 @@ describe('Transaction Replacement Scenarios', () => {
 				setup,
 				{
 					nonce,
-					maxFeePerGas: '0x3b9aca00', // 1 gwei
 				},
 			);
 			const tx1Hash = operation.transactions[0].hash;
@@ -56,7 +55,6 @@ describe('Transaction Replacement Scenarios', () => {
 				{
 					nonce,
 					from: TEST_ACCOUNT,
-					maxFeePerGas: '0x77359400', // 2 gwei
 				},
 			);
 			const tx2Hash = tx2.hash;
@@ -94,7 +92,6 @@ describe('Transaction Replacement Scenarios', () => {
 				setup,
 				{
 					nonce,
-					maxFeePerGas: '0x3b9aca00',
 				},
 			);
 			const tx1Hash = operation.transactions[0].hash;
@@ -108,7 +105,6 @@ describe('Transaction Replacement Scenarios', () => {
 				{
 					nonce,
 					from: TEST_ACCOUNT,
-					maxFeePerGas: '0x77359400',
 				},
 			);
 			const tx2Hash = tx2.hash;
@@ -185,7 +181,6 @@ describe('Transaction Replacement Scenarios', () => {
 				{
 					nonce,
 					from: TEST_ACCOUNT,
-					maxFeePerGas: '0x77359400',
 				},
 			);
 			const tx2Hash = tx2.hash;
@@ -210,7 +205,6 @@ describe('Transaction Replacement Scenarios', () => {
 				setup,
 				{
 					nonce,
-					maxFeePerGas: '0x3b9aca00', // 1 gwei
 				},
 			);
 			const tx1Hash = operation.transactions[0].hash;
@@ -224,7 +218,6 @@ describe('Transaction Replacement Scenarios', () => {
 				{
 					nonce,
 					from: TEST_ACCOUNT,
-					maxFeePerGas: '0x77359400', // 2 gwei
 				},
 			);
 			const tx2Hash = tx2.hash;
@@ -239,7 +232,6 @@ describe('Transaction Replacement Scenarios', () => {
 				{
 					nonce,
 					from: TEST_ACCOUNT,
-					maxFeePerGas: '0xb2d05e00', // 3 gwei
 				},
 			);
 			const tx3Hash = tx3.hash;

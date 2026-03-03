@@ -69,7 +69,7 @@ describe('Operation Status Merging', () => {
 
 			// Operation should be Included/Success (one success wins)
 			assertOperationIncluded(operation, 'Success');
-			expect(operation.txIndex).toBe(0);
+			expect(operation.state?.txIndex).toBe(0);
 		});
 
 		it('merge-one-included-failure: One tx failed, others pending → Included/Failure', async () => {
@@ -125,7 +125,7 @@ describe('Operation Status Merging', () => {
 
 			// Success should win over failure
 			assertOperationIncluded(operation, 'Success');
-			expect(operation.txIndex).toBe(1); // TX2 index
+			expect(operation.state?.txIndex).toBe(1); // TX2 index
 		});
 
 		it('merge-all-dropped: All txs dropped → Dropped', async () => {
@@ -229,8 +229,10 @@ describe('Operation Status Merging', () => {
 			await processAndWait(setup);
 
 			// txIndex should point to TX2 (index 1)
-			expect(operation.txIndex).toBe(1);
-			expect(operation.transactions[operation.txIndex!].hash).toBe(tx2Hash);
+			expect(operation.state?.txIndex).toBe(1);
+			expect(operation.transactions[operation.state?.txIndex!].hash).toBe(
+				tx2Hash,
+			);
 		});
 
 		it('should select first failure if no success', async () => {
@@ -262,7 +264,7 @@ describe('Operation Status Merging', () => {
 			await processAndWait(setup);
 
 			// txIndex should point to first failure (TX1, index 0)
-			expect(operation.txIndex).toBe(0);
+			expect(operation.state?.txIndex).toBe(0);
 		});
 
 		it('should update txIndex when success arrives after failure', async () => {
@@ -288,14 +290,14 @@ describe('Operation Status Merging', () => {
 			// TX1 fails
 			setup.controller.includeTx(tx1Hash, 'failure');
 			await processAndWait(setup);
-			expect(operation.txIndex).toBe(0);
+			expect(operation.state?.txIndex).toBe(0);
 
 			// TX2 succeeds
 			setup.controller.includeTx(tx2Hash, 'success');
 			await processAndWait(setup);
 
 			// txIndex should now point to success (TX2)
-			expect(operation.txIndex).toBe(1);
+			expect(operation.state?.txIndex).toBe(1);
 		});
 	});
 
@@ -333,7 +335,7 @@ describe('Operation Status Merging', () => {
 			await processAndWait(setup);
 
 			// Operation should be finalized
-			expect(operation.final).toBeDefined();
+			expect(operation.state?.final).toBeDefined();
 		});
 	});
 
@@ -348,7 +350,7 @@ describe('Operation Status Merging', () => {
 
 			// With no transactions, the operation stays at initial state
 			// (no txs to process means no status change)
-			assertOperationInclusion(op, 'BeingFetched');
+			expect(op.state).toBeUndefined();
 		});
 
 		it('should handle single transaction operation', async () => {
@@ -396,10 +398,6 @@ describe('Operation Status Merging', () => {
 				{
 					id: 'same-op-id',
 					transactions: [tx2],
-					inclusion: 'BeingFetched',
-					final: undefined,
-					status: undefined,
-					txIndex: undefined,
 				},
 			]);
 

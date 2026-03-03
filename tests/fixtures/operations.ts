@@ -1,4 +1,7 @@
-import type {OnchainOperation, BroadcastedTransaction} from '../../src/index.js';
+import type {
+	OnchainOperation,
+	BroadcastedTransaction,
+} from '../../src/index.js';
 import {createBroadcastedTx, TEST_ACCOUNT} from './transactions.js';
 
 // Counter for generating unique operation IDs
@@ -22,27 +25,21 @@ export function resetOpIdCounter(): void {
 /**
  * Create an OnchainOperation for testing
  */
-export function createOperation<T = unknown>(
-	overrides: Partial<OnchainOperation<T>> & {
+export function createOperation(
+	overrides: Partial<OnchainOperation> & {
 		transactions?: BroadcastedTransaction[];
 	} = {},
-): OnchainOperation<T> {
+): OnchainOperation {
 	const id = overrides.id || generateOpId();
 
 	// Default to one pending transaction if none provided
-	const transactions =
-		overrides.transactions ||
-		[createBroadcastedTx({inclusion: 'BeingFetched'})];
+	const transactions = overrides.transactions || [createBroadcastedTx({})];
 
 	return {
 		id,
 		transactions,
-		inclusion: overrides.inclusion || 'BeingFetched',
-		final: overrides.final,
-		status: overrides.status,
-		txIndex: overrides.txIndex,
-		metadata: overrides.metadata,
-	} as OnchainOperation<T>;
+		state: overrides.state,
+	};
 }
 
 /**
@@ -68,12 +65,17 @@ export function createBroadcastedOperation(
 ): OnchainOperation {
 	const tx = createBroadcastedTx({
 		...txOverrides,
-		inclusion: 'Broadcasted',
+		state: {inclusion: 'Broadcasted', final: undefined, status: undefined},
 	});
 	return createOperation({
 		...opOverrides,
 		transactions: [tx],
-		inclusion: 'Broadcasted',
+		state: {
+			inclusion: 'Broadcasted',
+			final: undefined,
+			status: undefined,
+			txIndex: undefined,
+		},
 	});
 }
 
@@ -86,15 +88,19 @@ export function createIncludedOperation(
 ): OnchainOperation {
 	const tx = createBroadcastedTx({
 		...txOverrides,
-		inclusion: 'Included',
-		status: 'Success',
+		state: {
+			inclusion: 'Included',
+			status: 'Success',
+		},
 	});
 	return createOperation({
 		...opOverrides,
 		transactions: [tx],
-		inclusion: 'Included',
-		status: 'Success',
-		txIndex: 0,
+		state: {
+			inclusion: 'Included',
+			status: 'Success',
+			txIndex: 0,
+		},
 	});
 }
 
@@ -107,15 +113,19 @@ export function createFailedOperation(
 ): OnchainOperation {
 	const tx = createBroadcastedTx({
 		...txOverrides,
-		inclusion: 'Included',
-		status: 'Failure',
+		state: {
+			inclusion: 'Included',
+			status: 'Failure',
+		},
 	});
 	return createOperation({
 		...opOverrides,
 		transactions: [tx],
-		inclusion: 'Included',
-		status: 'Failure',
-		txIndex: 0,
+		state: {
+			inclusion: 'Included',
+			status: 'Failure',
+			txIndex: 0,
+		},
 	});
 }
 
@@ -128,14 +138,21 @@ export function createDroppedOperation(
 ): OnchainOperation {
 	const tx = createBroadcastedTx({
 		...txOverrides,
-		inclusion: 'Dropped',
-		final: txOverrides.final || Date.now(),
+		state: {
+			inclusion: 'Dropped',
+			final: txOverrides.state?.final || Date.now(),
+			status: undefined,
+		},
 	});
 	return createOperation({
 		...opOverrides,
 		transactions: [tx],
-		inclusion: 'Dropped',
-		final: tx.final,
+		state: {
+			inclusion: 'Dropped',
+			final: tx.state?.final,
+			status: undefined,
+			txIndex: undefined,
+		},
 	});
 }
 
@@ -147,26 +164,23 @@ export function createDroppedOperation(
 export function createGasBumpOperation(
 	nonce: number = 5,
 	opOverrides: Partial<OnchainOperation> = {},
-): {operation: OnchainOperation; originalTx: BroadcastedTransaction; replacementTx: BroadcastedTransaction} {
+): {
+	operation: OnchainOperation;
+	originalTx: BroadcastedTransaction;
+	replacementTx: BroadcastedTransaction;
+} {
 	const originalTx = createBroadcastedTx({
 		nonce,
-		maxFeePerGas: '0x3b9aca00', // 1 gwei
-		maxPriorityFeePerGas: '0x3b9aca00',
-		inclusion: 'BeingFetched',
 	});
 
 	const replacementTx = createBroadcastedTx({
 		nonce,
-		maxFeePerGas: '0x77359400', // 2 gwei (higher)
-		maxPriorityFeePerGas: '0x77359400',
 		from: originalTx.from,
-		inclusion: 'BeingFetched',
 	});
 
 	const operation = createOperation({
 		...opOverrides,
 		transactions: [originalTx, replacementTx],
-		inclusion: 'BeingFetched',
 	});
 
 	return {operation, originalTx, replacementTx};
@@ -187,10 +201,6 @@ export function createReplacementChain(
 		const tx = createBroadcastedTx({
 			nonce,
 			from: TEST_ACCOUNT,
-			// Increase gas with each replacement
-			maxFeePerGas: `0x${(1000000000 * gasMultiplier).toString(16)}`,
-			maxPriorityFeePerGas: `0x${(1000000000 * gasMultiplier).toString(16)}`,
-			inclusion: 'BeingFetched',
 		});
 		transactions.push(tx);
 	}
@@ -198,7 +208,6 @@ export function createReplacementChain(
 	const operation = createOperation({
 		...opOverrides,
 		transactions,
-		inclusion: 'BeingFetched',
 	});
 
 	return {operation, transactions};
