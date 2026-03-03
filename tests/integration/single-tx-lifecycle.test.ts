@@ -154,21 +154,25 @@ describe('Single Transaction Lifecycle', () => {
 		});
 
 		it('should emit events with correct operation data', async () => {
-			const {operation, addToMempool} = addSingleTxOperation(setup, {
-				nonce: 5,
-			});
+			const {operation, operationId, addToMempool} = addSingleTxOperation(
+				setup,
+				{
+					nonce: 5,
+				},
+			);
 			const txHash = operation.transactions[0].hash;
 
 			addToMempool();
 			await processAndWait(setup);
 
-			const emission = setup.emissions[setup.emissions.length - 1];
+			const emissionEvent =
+				setup.emissionEvents[setup.emissionEvents.length - 1];
 
 			// Verify emission contains correct data
-			expect(emission.id).toBe(operation.id);
-			expect(emission.transactions).toHaveLength(1);
-			expect(emission.transactions[0].hash).toBe(txHash);
-			expect(emission.state?.inclusion).toBe('Broadcasted');
+			expect(emissionEvent.id).toBe(operationId);
+			expect(emissionEvent.operation.transactions).toHaveLength(1);
+			expect(emissionEvent.operation.transactions[0].hash).toBe(txHash);
+			expect(emissionEvent.operation.state?.inclusion).toBe('Broadcasted');
 		});
 	});
 

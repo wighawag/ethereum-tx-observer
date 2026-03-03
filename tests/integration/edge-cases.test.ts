@@ -113,7 +113,10 @@ describe('Edge Cases for Full Coverage', () => {
 
 			const emissions: OnchainOperation[] = [];
 			processor.onOperation((event) => {
-				emissions.push({...event.operation, transactions: [...event.operation.transactions]});
+				emissions.push({
+					...event.operation,
+					transactions: [...event.operation.transactions],
+				});
 				return () => {};
 			});
 
@@ -357,7 +360,10 @@ describe('Edge Cases for Full Coverage', () => {
 
 			const emissions: OnchainOperation[] = [];
 			processor.onOperation((event) => {
-				emissions.push({...event.operation, transactions: [...event.operation.transactions]});
+				emissions.push({
+					...event.operation,
+					transactions: [...event.operation.transactions],
+				});
 				return () => {};
 			});
 

@@ -63,10 +63,11 @@ describe('Dropped Transaction Scenarios', () => {
 			const nonce = 5;
 
 			// Create operation with TX1
-			const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
-				setup,
-				{nonce},
-			);
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1ToMempool,
+			} = addSingleTxOperation(setup, {nonce});
 			const tx1Hash = operation.transactions[0].hash;
 			const account = operation.transactions[0].from;
 
@@ -106,10 +107,11 @@ describe('Dropped Transaction Scenarios', () => {
 			const nonce = 5;
 
 			// Create operation with TX1
-			const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
-				setup,
-				{nonce},
-			);
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1ToMempool,
+			} = addSingleTxOperation(setup, {nonce});
 			const tx1Hash = operation.transactions[0].hash;
 			const account = operation.transactions[0].from;
 

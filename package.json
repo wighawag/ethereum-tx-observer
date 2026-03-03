@@ -57,10 +57,13 @@
 		"radiate": "^0.3.2"
 	},
 	"scripts": {
+		"prepublishOnly": "pnpm format:check && pnpm typecheck && pnpm build",
+		"release": "pnpm prepublishOnly && git push --all && pnpm changeset publish && git push --tags",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
 		"build": "tsc",
 		"dev": "as-soon -w src pnpm build",
+		"typecheck": "tsc --noEmit -p tsconfig-check.json",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:coverage": "vitest run --coverage"

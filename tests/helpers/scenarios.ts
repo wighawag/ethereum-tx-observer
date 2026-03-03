@@ -1,6 +1,7 @@
 import {
 	initTransactionProcessor,
 	type OnchainOperation,
+	type OnchainOperationEvent,
 } from '../../src/index.js';
 import {
 	createMockProvider,
@@ -22,6 +23,7 @@ export interface TestSetup {
 	processor: ReturnType<typeof initTransactionProcessor>;
 	controller: MockProviderController;
 	emissions: OnchainOperation[];
+	emissionEvents: OnchainOperationEvent[];
 	cleanup: () => void;
 }
 
@@ -45,8 +47,10 @@ export function createTestSetup(
 	});
 
 	const emissions: OnchainOperation[] = [];
+	const emissionEvents: OnchainOperationEvent[] = [];
 	const cleanupListener = processor.onOperation((event) => {
 		emissions.push(structuredClone(event.operation));
+		emissionEvents.push(structuredClone(event));
 		return () => {};
 	});
 
@@ -54,6 +58,7 @@ export function createTestSetup(
 		processor,
 		controller,
 		emissions,
+		emissionEvents,
 		cleanup: cleanupListener,
 	};
 }
@@ -66,7 +71,11 @@ export function addSingleTxOperation(
 	setup: TestSetup,
 	txOverrides: Parameters<typeof createBroadcastedTx>[0] = {},
 	opOverrides: Partial<OnchainOperation> = {},
-): {operation: OnchainOperation; operationId: string; addToMempool: () => void} {
+): {
+	operation: OnchainOperation;
+	operationId: string;
+	addToMempool: () => void;
+} {
 	const tx = createBroadcastedTx(txOverrides);
 	const mockTx = createMockTx({
 		hash: tx.hash,
@@ -223,12 +232,13 @@ export async function runGasBumpScenario(
 	finalEmission: OnchainOperation | undefined;
 }> {
 	// Create initial tx
-	const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
-		setup,
-		{
-			nonce,
-		},
-	);
+	const {
+		operation,
+		operationId,
+		addToMempool: addTx1ToMempool,
+	} = addSingleTxOperation(setup, {
+		nonce,
+	});
 	const tx1Hash = operation.transactions[0].hash;
 
 	// Add TX1 to mempool and process

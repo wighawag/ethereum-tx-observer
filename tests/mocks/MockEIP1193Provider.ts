@@ -457,5 +457,8 @@ export function createMockProvider(config: MockProviderConfig = {}): {
 		},
 	};
 
-	return {provider: provider as unknown as EIP1193ProviderWithoutEvents, controller};
+	return {
+		provider: provider as unknown as EIP1193ProviderWithoutEvents,
+		controller,
+	};
 }

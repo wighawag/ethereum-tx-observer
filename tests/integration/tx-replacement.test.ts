@@ -35,12 +35,13 @@ describe('Transaction Replacement Scenarios', () => {
 			const nonce = 5;
 
 			// Create operation with TX1
-			const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
-				setup,
-				{
-					nonce,
-				},
-			);
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1ToMempool,
+			} = addSingleTxOperation(setup, {
+				nonce,
+			});
 			const tx1Hash = operation.transactions[0].hash;
 
 			// TX1 appears in mempool
@@ -89,12 +90,13 @@ describe('Transaction Replacement Scenarios', () => {
 			const nonce = 5;
 
 			// Create operation with TX1
-			const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
-				setup,
-				{
-					nonce,
-				},
-			);
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1ToMempool,
+			} = addSingleTxOperation(setup, {
+				nonce,
+			});
 			const tx1Hash = operation.transactions[0].hash;
 			addTx1ToMempool();
 			await processAndWait(setup);
@@ -134,10 +136,11 @@ describe('Transaction Replacement Scenarios', () => {
 			const nonce = 5;
 
 			// Create operation with TX1
-			const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
-				setup,
-				{nonce},
-			);
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1ToMempool,
+			} = addSingleTxOperation(setup, {nonce});
 			const tx1Hash = operation.transactions[0].hash;
 			addTx1ToMempool();
 			await processAndWait(setup);
@@ -169,10 +172,11 @@ describe('Transaction Replacement Scenarios', () => {
 			const nonce = 5;
 
 			// Create operation with TX1
-			const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
-				setup,
-				{nonce},
-			);
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1ToMempool,
+			} = addSingleTxOperation(setup, {nonce});
 			const tx1Hash = operation.transactions[0].hash;
 			addTx1ToMempool();
 			await processAndWait(setup);
@@ -205,12 +209,13 @@ describe('Transaction Replacement Scenarios', () => {
 			const nonce = 5;
 
 			// Create operation with TX1
-			const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
-				setup,
-				{
-					nonce,
-				},
-			);
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1ToMempool,
+			} = addSingleTxOperation(setup, {
+				nonce,
+			});
 			const tx1Hash = operation.transactions[0].hash;
 			addTx1ToMempool();
 			await processAndWait(setup);
@@ -269,10 +274,11 @@ describe('Transaction Replacement Scenarios', () => {
 			const nonce = 5;
 
 			// Create operation with TX1
-			const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
-				setup,
-				{nonce},
-			);
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1ToMempool,
+			} = addSingleTxOperation(setup, {nonce});
 			const tx1Hash = operation.transactions[0].hash;
 			addTx1ToMempool();
 
@@ -333,10 +339,11 @@ describe('Transaction Replacement Scenarios', () => {
 			// the operation should report success
 
 			// Create operation with TX1
-			const {operation, operationId, addToMempool: addTx1ToMempool} = addSingleTxOperation(
-				setup,
-				{nonce},
-			);
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1ToMempool,
+			} = addSingleTxOperation(setup, {nonce});
 			const tx1Hash = operation.transactions[0].hash;
 			addTx1ToMempool();
 			await processAndWait(setup);

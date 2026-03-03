@@ -330,10 +330,11 @@ describe('Network Conditions', () => {
 		it('should handle remove specific operation', async () => {
 			setup = createTestSetup({finality: 12});
 
-			const {operation: op1, addToMempool: addTx1} = addSingleTxOperation(
-				setup,
-				{nonce: 5},
-			);
+			const {
+				operation: op1,
+				operationId: op1Id,
+				addToMempool: addTx1,
+			} = addSingleTxOperation(setup, {nonce: 5});
 			addTx1();
 
 			const {operation: op2, addToMempool: addTx2} = addSingleTxOperation(
@@ -351,7 +352,7 @@ describe('Network Conditions', () => {
 			const emissionsBeforeRemove = setup.emissions.length;
 
 			// Remove op1
-			setup.processor.remove(op1.id);
+			setup.processor.remove(op1Id);
 
 			// Process again
 			await processAndWait(setup);

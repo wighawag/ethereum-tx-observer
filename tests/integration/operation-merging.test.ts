@@ -32,15 +32,24 @@ describe('Operation Status Merging', () => {
 	describe('Status Priority', () => {
 		it('merge-all-broadcasted: All txs in mempool → Broadcasted', async () => {
 			// Create operation with multiple txs
-			const {operation, operationId, addToMempool: addTx1} = addSingleTxOperation(setup, {
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1,
+			} = addSingleTxOperation(setup, {
 				nonce: 5,
 			});
 			addTx1();
 
-			const {addToMempool: addTx2} = addReplacementTx(setup, operationId, operation, {
-				nonce: 6,
-				from: TEST_ACCOUNT,
-			});
+			const {addToMempool: addTx2} = addReplacementTx(
+				setup,
+				operationId,
+				operation,
+				{
+					nonce: 6,
+					from: TEST_ACCOUNT,
+				},
+			);
 			addTx2();
 
 			await processAndWait(setup);
@@ -49,16 +58,25 @@ describe('Operation Status Merging', () => {
 		});
 
 		it('merge-one-included-success: One tx succeeded, others pending → Included/Success', async () => {
-			const {operation, operationId, addToMempool: addTx1} = addSingleTxOperation(setup, {
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1,
+			} = addSingleTxOperation(setup, {
 				nonce: 5,
 			});
 			const tx1Hash = operation.transactions[0].hash;
 			addTx1();
 
-			const {addToMempool: addTx2} = addReplacementTx(setup, operationId, operation, {
-				nonce: 6,
-				from: TEST_ACCOUNT,
-			});
+			const {addToMempool: addTx2} = addReplacementTx(
+				setup,
+				operationId,
+				operation,
+				{
+					nonce: 6,
+					from: TEST_ACCOUNT,
+				},
+			);
 			addTx2();
 
 			await processAndWait(setup);
@@ -73,16 +91,25 @@ describe('Operation Status Merging', () => {
 		});
 
 		it('merge-one-included-failure: One tx failed, others pending → Included/Failure', async () => {
-			const {operation, operationId, addToMempool: addTx1} = addSingleTxOperation(setup, {
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1,
+			} = addSingleTxOperation(setup, {
 				nonce: 5,
 			});
 			const tx1Hash = operation.transactions[0].hash;
 			addTx1();
 
-			const {addToMempool: addTx2} = addReplacementTx(setup, operationId, operation, {
-				nonce: 6,
-				from: TEST_ACCOUNT,
-			});
+			const {addToMempool: addTx2} = addReplacementTx(
+				setup,
+				operationId,
+				operation,
+				{
+					nonce: 6,
+					from: TEST_ACCOUNT,
+				},
+			);
 			addTx2();
 
 			await processAndWait(setup);
@@ -96,7 +123,11 @@ describe('Operation Status Merging', () => {
 		});
 
 		it('merge-mixed-included: One success, one failure → Included/Success', async () => {
-			const {operation, operationId, addToMempool: addTx1} = addSingleTxOperation(setup, {
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1,
+			} = addSingleTxOperation(setup, {
 				nonce: 5,
 			});
 			const tx1Hash = operation.transactions[0].hash;
@@ -130,7 +161,11 @@ describe('Operation Status Merging', () => {
 		});
 
 		it('merge-all-dropped: All txs dropped → Dropped', async () => {
-			const {operation, operationId, addToMempool: addTx1} = addSingleTxOperation(setup, {
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1,
+			} = addSingleTxOperation(setup, {
 				nonce: 5,
 			});
 			const tx1Hash = operation.transactions[0].hash;
@@ -164,7 +199,11 @@ describe('Operation Status Merging', () => {
 		it('merge-priority-order: Included > Broadcasted > BeingFetched > NotFound > Dropped', async () => {
 			// Test that included status takes priority over all others
 
-			const {operation, operationId, addToMempool: addTx1} = addSingleTxOperation(setup, {
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1,
+			} = addSingleTxOperation(setup, {
 				nonce: 5,
 			});
 			const tx1Hash = operation.transactions[0].hash;
@@ -174,10 +213,15 @@ describe('Operation Status Merging', () => {
 			assertOperationInclusion(operation, 'NotFound');
 
 			// Add TX2 to mempool
-			const {addToMempool: addTx2} = addReplacementTx(setup, operationId, operation, {
-				nonce: 6,
-				from: TEST_ACCOUNT,
-			});
+			const {addToMempool: addTx2} = addReplacementTx(
+				setup,
+				operationId,
+				operation,
+				{
+					nonce: 6,
+					from: TEST_ACCOUNT,
+				},
+			);
 			addTx2();
 			await processAndWait(setup);
 
@@ -196,7 +240,11 @@ describe('Operation Status Merging', () => {
 
 	describe('Transaction Index Selection', () => {
 		it('should select first successful tx as txIndex', async () => {
-			const {operation, operationId, addToMempool: addTx1} = addSingleTxOperation(setup, {
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1,
+			} = addSingleTxOperation(setup, {
 				nonce: 5,
 			});
 			const tx1Hash = operation.transactions[0].hash;
@@ -240,7 +288,11 @@ describe('Operation Status Merging', () => {
 		});
 
 		it('should select first failure if no success', async () => {
-			const {operation, operationId, addToMempool: addTx1} = addSingleTxOperation(setup, {
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1,
+			} = addSingleTxOperation(setup, {
 				nonce: 5,
 			});
 			const tx1Hash = operation.transactions[0].hash;
@@ -273,7 +325,11 @@ describe('Operation Status Merging', () => {
 		});
 
 		it('should update txIndex when success arrives after failure', async () => {
-			const {operation, operationId, addToMempool: addTx1} = addSingleTxOperation(setup, {
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1,
+			} = addSingleTxOperation(setup, {
 				nonce: 5,
 			});
 			const tx1Hash = operation.transactions[0].hash;
@@ -309,7 +365,11 @@ describe('Operation Status Merging', () => {
 
 	describe('Finality Handling', () => {
 		it('should use most recent final timestamp from included txs', async () => {
-			const {operation, operationId, addToMempool: addTx1} = addSingleTxOperation(setup, {
+			const {
+				operation,
+				operationId,
+				addToMempool: addTx1,
+			} = addSingleTxOperation(setup, {
 				nonce: 5,
 			});
 			const tx1Hash = operation.transactions[0].hash;
