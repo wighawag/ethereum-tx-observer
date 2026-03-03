@@ -87,6 +87,13 @@ export type OnchainOperationEvent = {
 };
 
 /**
+ * Event payload for adding operations
+ */
+export type OnchainOperationsAddedEvent = {
+	[id: string]: OnchainOperation;
+};
+
+/**
  * Compute the merged operation status from all its transactions.
  *
  * Priority order (highest wins):
@@ -223,6 +230,7 @@ export function initTransactionProcessor(config: {
 		operation: OnchainOperationEvent;
 		// Fires only when operation status changes (for UI/state updates)
 		'operation:status': OnchainOperationEvent;
+		'operations:added': OnchainOperationsAddedEvent;
 	}>();
 
 	let provider: EIP1193ProviderWithoutEvents | undefined = config.provider;
@@ -233,11 +241,14 @@ export function initTransactionProcessor(config: {
 	function addMultiple(operations: {[id: string]: OnchainOperation}) {
 		logger.debug(`adding ${Object.keys(operations).length} operations...`);
 		for (const entry of Object.entries(operations)) {
-			add(entry[0], entry[1]);
+			_add(entry[0], entry[1]);
+		}
+		if (emitter.hasListeners('operations:added')) {
+			emitter.emit('operations:added', structuredClone(operations));
 		}
 	}
 
-	function add(id: string, operationToAdd: OnchainOperation) {
+	function _add(id: string, operationToAdd: OnchainOperation) {
 		const operation = structuredClone(operationToAdd);
 		logger.debug(`adding operation ${id}...`);
 		const existing = opsById[id];
@@ -255,6 +266,13 @@ export function initTransactionProcessor(config: {
 					txToOp[tx.hash] = existing;
 				}
 			}
+		}
+	}
+
+	function add(id: string, operationToAdd: OnchainOperation) {
+		_add(id, operationToAdd);
+		if (emitter.hasListeners('operations:added')) {
+			emitter.emit('operations:added', {[id]: structuredClone(operationToAdd)});
 		}
 	}
 
@@ -597,6 +615,13 @@ export function initTransactionProcessor(config: {
 		process: (config.throttle
 			? throttle(process, config.throttle)
 			: process) as typeof process,
+
+		onOperationsAdded: (
+			listener: (event: OnchainOperationsAddedEvent) => () => void,
+		) => emitter.on('operations:added', listener),
+		offOperationsAdded: (
+			listener: (event: OnchainOperationsAddedEvent) => void,
+		) => emitter.off('operations:added', listener),
 
 		// 'onOperationUpdatedUpdated' fires when any TX in the operation changes (for persistence)
 		onOperationUpdated: (
